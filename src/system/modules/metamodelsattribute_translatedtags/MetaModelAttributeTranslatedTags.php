@@ -316,20 +316,22 @@ class MetaModelAttributeTranslatedTags extends MetaModelAttributeTags implements
 	 */
 	public function searchForInLanguages($strPattern, $arrLanguages = array())
 	{
-		$arrParams = array($strPattern);
+		$arrParams = array($strPattern, $strPattern);
+
 		$strTableName = $this->get('tag_table');
 		$strColNameId = $this->get('tag_id');
 		$strColNameLangCode = $this->get('tag_langcolumn');
 		$strColumn = $this->get('tag_column');
-
+		$strColAlias = $this->get('tag_alias') ? $this->get('tag_alias') : $strColNameId;
+        
 		$objFilterRule = new MetaModelFilterRuleSimpleQuery(
-			sprintf('SELECT item_id FROM tl_metamodel_tag_relation WHERE value_id IN (SELECT DISTINCT %s FROM %s WHERE %s = ?%s) AND att_id = %s',
-				$strColNameId,
-				$strTableName,
-				$strColumn,
-				$arrLanguages ? sprintf(' AND %s IN (\'%s\')',$strColNameLangCode,implode('\',\'', $arrLanguages)) : '',
-				$this->get('id')
-
+			sprintf('SELECT item_id FROM tl_metamodel_tag_relation WHERE value_id IN (SELECT DISTINCT %1$s FROM %2$s WHERE %3$s LIKE ? OR %6$s LIKE ?%4$s) AND att_id = %5$s',
+				$strColNameId,  //1
+				$strTableName,  //2
+				$strColumn,     //3
+				$arrLanguages ? sprintf(' AND %s IN (\'%s\')',$strColNameLangCode,implode('\',\'', $arrLanguages)) : '',    //4
+				$this->get('id'),   //5
+				$strColAlias    //6
 			),
 			$arrParams,
 			'item_id'
