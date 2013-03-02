@@ -9,6 +9,7 @@
  * @package	   MetaModels
  * @subpackage Backend
  * @author     Christian Schiffler <c.schiffler@cyberspectrum.de>
+ * @author     Christian Kolb <info@kolbchristian.de>
  * @copyright  The MetaModels team.
  * @license    LGPL.
  * @filesource
@@ -23,4 +24,4 @@ if (!defined('TL_ROOT'))
  */
 $GLOBALS['TL_LANG']['tl_metamodel_attribute']['typeOptions']['translatedtags']    = 'Übersetzte Tags';
 
-?>
+$GLOBALS['TL_LANG']['tl_metamodel_attribute']['tag_langcolumn'] = array('Sprachenspalte', 'Bitte wählen Sie die Spalte aus, die den Sprachcode ISO 639-1 beinhaltet.');
