@@ -189,7 +189,7 @@ class TranslatedTags extends Tags implements ITranslated
      *
      * @return int[] a list of all matching value ids.
      *
-     * @see    TranslatedTags::getFilterOptions().
+     * @see TranslatedTags::getFilterOptions().
      */
     protected function getValueIds($arrIds, $blnUsedOnly, &$arrCount = null)
     {
@@ -433,7 +433,6 @@ class TranslatedTags extends Tags implements ITranslated
 
         // Second round, fetch fallback languages if not all items could be resolved.
         if ((count($arrFallbackIds) > 0) && ($strActiveLanguage != $strFallbackLanguage)) {
-
             $arrFallbackData = $this->getTranslatedDataFor($arrFallbackIds, $strFallbackLanguage);
 
             // Cannot use array_merge here as it would renumber the keys.
@@ -444,7 +443,6 @@ class TranslatedTags extends Tags implements ITranslated
                     }
                 }
             }
-
         }
         return $arrReturn;
     }
@@ -547,6 +545,7 @@ class TranslatedTags extends Tags implements ITranslated
 
     /**
      * {@inheritDoc}
+     *
      * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
     public function unsetValueFor($arrIds, $strLangCode)
