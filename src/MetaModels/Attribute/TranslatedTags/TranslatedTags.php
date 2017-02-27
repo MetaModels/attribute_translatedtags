@@ -1,11 +1,17 @@
 <?php
+
 /**
+ * This file is part of MetaModels/attribute_translatedtags.
+ *
+ * (c) 2012-2016 The MetaModels team.
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ *
  * The MetaModels extension allows the creation of multiple collections of custom items,
  * each with its own unique set of selectable attributes, with attribute extendability.
  * The Front-End modules allow you to build powerful listing and filtering of the
  * data in each collection.
- *
- * PHP version 5
  *
  * @package    MetaModels
  * @subpackage AttributeTranslatedTags
@@ -14,8 +20,9 @@
  * @author     Andreas Isaak <info@andreas-isaak.de>
  * @author     David Maack <david.maack@arcor.de>
  * @author     Christian de la Haye <service@delahaye.de>
- * @copyright  The MetaModels team.
- * @license    LGPL.
+ * @author     Sven Baumann <baumann.sv@gmail.com>
+ * @copyright  2012-2016 The MetaModels team.
+ * @license    https://github.com/MetaModels/attribute_translatedtags/blob/master/LICENSE LGPL-3.0
  * @filesource
  */
 
@@ -182,7 +189,7 @@ class TranslatedTags extends Tags implements ITranslated
      *
      * @return int[] a list of all matching value ids.
      *
-     * @see    TranslatedTags::getFilterOptions().
+     * @see TranslatedTags::getFilterOptions().
      */
     protected function getValueIds($arrIds, $blnUsedOnly, &$arrCount = null)
     {
@@ -426,7 +433,6 @@ class TranslatedTags extends Tags implements ITranslated
 
         // Second round, fetch fallback languages if not all items could be resolved.
         if ((count($arrFallbackIds) > 0) && ($strActiveLanguage != $strFallbackLanguage)) {
-
             $arrFallbackData = $this->getTranslatedDataFor($arrFallbackIds, $strFallbackLanguage);
 
             // Cannot use array_merge here as it would renumber the keys.
@@ -437,7 +443,6 @@ class TranslatedTags extends Tags implements ITranslated
                     }
                 }
             }
-
         }
         return $arrReturn;
     }
@@ -540,6 +545,7 @@ class TranslatedTags extends Tags implements ITranslated
 
     /**
      * {@inheritDoc}
+     *
      * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
     public function unsetValueFor($arrIds, $strLangCode)
