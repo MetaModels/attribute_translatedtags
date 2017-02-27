@@ -1,11 +1,17 @@
 <?php
+
 /**
+ * This file is part of MetaModels/attribute_translatedtags.
+ *
+ * (c) 2012-2016 The MetaModels team.
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ *
  * The MetaModels extension allows the creation of multiple collections of custom items,
  * each with its own unique set of selectable attributes, with attribute extendability.
  * The Front-End modules allow you to build powerful listing and filtering of the
  * data in each collection.
- *
- * PHP version 5
  *
  * @package    MetaModels
  * @subpackage AttributeTranslatedTags
@@ -14,8 +20,9 @@
  * @author     Andreas Isaak <info@andreas-isaak.de>
  * @author     David Maack <david.maack@arcor.de>
  * @author     Christian de la Haye <service@delahaye.de>
- * @copyright  The MetaModels team.
- * @license    LGPL.
+ * @author     Sven Baumann <baumann.sv@gmail.com>
+ * @copyright  2012-2016 The MetaModels team.
+ * @license    https://github.com/MetaModels/attribute_translatedtags/blob/master/LICENSE LGPL-3.0
  * @filesource
  */
 
@@ -76,6 +83,24 @@ class TranslatedTags extends Tags implements ITranslated
         }
 
         return $column;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    protected function checkConfiguration()
+    {
+        // Parent checks apply.
+        if (!parent::checkConfiguration()) {
+            return false;
+        }
+
+        // If sort table given and non existent, exit.
+        if (null !== ($sortTable = $this->getTagSortSourceTable()) && !$this->getDatabase()->tableExists($sortTable)) {
+            return false;
+        }
+
+        return (null !== $this->getTagLangColumn());
     }
 
     /**
@@ -173,16 +198,19 @@ class TranslatedTags extends Tags implements ITranslated
      * fallback languages into account.
      * This method is mainly intended as a helper for TranslatedTags::getFilterOptions().
      *
-     * @param int[] $arrIds      A list of item ids that the result shall be limited to.
+     * @param string[] $arrIds      A list of item ids that the result shall be limited to.
      *
-     * @param bool  $blnUsedOnly Do only return ids that have matches in the real table.
+     * @param bool     $blnUsedOnly Do only return ids that have matches in the real table.
      *
-     * @param null  $arrCount    Array to where the amount of items per tag shall be stored. May be null to return
-     *                           nothing.
+     * @param null     $arrCount    Array to where the amount of items per tag shall be stored. May be null to return
+     *                              nothing.
      *
      * @return int[] a list of all matching value ids.
      *
-     * @see    TranslatedTags::getFilterOptions().
+     * @see TranslatedTags::getFilterOptions().
+     *
+     * @@SuppressWarnings(PHPMD.ExcessiveMethodLength)
+     * @@SuppressWarnings(PHPMD.NPathComplexity)
      */
     protected function getValueIds($arrIds, $blnUsedOnly, &$arrCount = null)
     {
@@ -301,7 +329,7 @@ class TranslatedTags extends Tags implements ITranslated
      *
      * @param string $strLangCode The language code for which the values shall be retrieved.
      *
-     * @return \Database\Result a database result containing all matching values.
+     * @return Result a database result containing all matching values.
      */
     protected function getValues($arrValueIds, $strLangCode)
     {
@@ -426,7 +454,6 @@ class TranslatedTags extends Tags implements ITranslated
 
         // Second round, fetch fallback languages if not all items could be resolved.
         if ((count($arrFallbackIds) > 0) && ($strActiveLanguage != $strFallbackLanguage)) {
-
             $arrFallbackData = $this->getTranslatedDataFor($arrFallbackIds, $strFallbackLanguage);
 
             // Cannot use array_merge here as it would renumber the keys.
@@ -437,7 +464,6 @@ class TranslatedTags extends Tags implements ITranslated
                     }
                 }
             }
-
         }
         return $arrReturn;
     }
@@ -473,9 +499,8 @@ class TranslatedTags extends Tags implements ITranslated
         $strColNameId       = $this->getIdColumn();
         $strColNameLangCode = $this->getTagLangColumn();
         $strSortColumn      = $this->getSortingColumn();
-        $arrReturn          = array();
 
-        if (!($strTableName && $strColNameId && $strColNameLangCode)) {
+        if (!$this->isProperlyConfigured()) {
             return array();
         }
 
@@ -488,11 +513,10 @@ class TranslatedTags extends Tags implements ITranslated
             : false;
         if ($this->getTagSortSourceTable()) {
             $join = sprintf(
-                'JOIN %s ON %s.%s=%s.id',
+                'JOIN %1$s ON %2$s.%3$s=%1$s.id',
                 $this->getTagSortSourceTable(),
-                $this->getTagSource(),
-                $this->getIdColumn(),
-                $this->getTagSortSourceTable()
+                $strTableName,
+                $strColNameId
             );
 
             if ($this->getTagSortSourceColumn(true)) {
@@ -526,20 +550,12 @@ class TranslatedTags extends Tags implements ITranslated
         ))
             ->execute($this->get('id'), $strLangCode);
 
-        while ($objValue->next()) {
-            if (!isset($arrReturn[$objValue->$metaModelItemId])) {
-                $arrReturn[$objValue->$metaModelItemId] = array();
-            }
-            $arrData = $objValue->row();
-            unset($arrData[$metaModelItemId]);
-            $arrReturn[$objValue->$metaModelItemId][$objValue->$strColNameId] = $arrData;
-        }
-
-        return $arrReturn;
+        return $this->convertRows($objValue, $metaModelItemId, $strColNameId);
     }
 
     /**
      * {@inheritDoc}
+     *
      * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
     public function unsetValueFor($arrIds, $strLangCode)
@@ -590,5 +606,29 @@ class TranslatedTags extends Tags implements ITranslated
         );
 
         return $objFilterRule->getMatchingIds();
+    }
+
+    /**
+     * Convert the database result to an result array.
+     *
+     * @param Result $dbResult    The database result.
+     * @param string $idColumn    The id column name.
+     * @param string $valueColumn The value column name.
+     *
+     * @return array
+     */
+    private function convertRows(Result $dbResult, $idColumn, $valueColumn)
+    {
+        $result = [];
+        while ($dbResult->next()) {
+            if (!isset($result[$dbResult->$idColumn])) {
+                $result[$dbResult->$idColumn] = [];
+            }
+            $data = $dbResult->row();
+            unset($data[$idColumn]);
+            $result[$dbResult->$idColumn][$dbResult->$valueColumn] = $data;
+        }
+
+        return $result;
     }
 }
