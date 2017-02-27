@@ -198,12 +198,12 @@ class TranslatedTags extends Tags implements ITranslated
      * fallback languages into account.
      * This method is mainly intended as a helper for TranslatedTags::getFilterOptions().
      *
-     * @param int[] $arrIds      A list of item ids that the result shall be limited to.
+     * @param string[] $arrIds      A list of item ids that the result shall be limited to.
      *
-     * @param bool  $blnUsedOnly Do only return ids that have matches in the real table.
+     * @param bool     $blnUsedOnly Do only return ids that have matches in the real table.
      *
-     * @param null  $arrCount    Array to where the amount of items per tag shall be stored. May be null to return
-     *                           nothing.
+     * @param null     $arrCount    Array to where the amount of items per tag shall be stored. May be null to return
+     *                              nothing.
      *
      * @return int[] a list of all matching value ids.
      *
@@ -326,7 +326,7 @@ class TranslatedTags extends Tags implements ITranslated
      *
      * @param string $strLangCode The language code for which the values shall be retrieved.
      *
-     * @return \Database\Result a database result containing all matching values.
+     * @return Result a database result containing all matching values.
      */
     protected function getValues($arrValueIds, $strLangCode)
     {
