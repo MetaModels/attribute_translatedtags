@@ -86,6 +86,24 @@ class TranslatedTags extends Tags implements ITranslated
     }
 
     /**
+     * {@inheritDoc}
+     */
+    protected function checkConfiguration()
+    {
+        // Parent checks apply.
+        if (!parent::checkConfiguration()) {
+            return false;
+        }
+
+        // If sort table given and non existent, exit.
+        if (null !== ($sortTable = $this->getTagSortSourceTable()) && !$this->getDatabase()->tableExists($sortTable)) {
+            return false;
+        }
+
+        return (null !== $this->getTagLangColumn());
+    }
+
+    /**
      * Determine the amount of entries in the relation table for this attribute and the given value ids.
      *
      * @param int[] $arrIds The ids of the items for which the tag count shall be determined.
@@ -478,9 +496,8 @@ class TranslatedTags extends Tags implements ITranslated
         $strColNameId       = $this->getIdColumn();
         $strColNameLangCode = $this->getTagLangColumn();
         $strSortColumn      = $this->getSortingColumn();
-        $arrReturn          = array();
 
-        if (!($strTableName && $strColNameId && $strColNameLangCode)) {
+        if (!$this->isProperlyConfigured()) {
             return array();
         }
 
@@ -493,11 +510,10 @@ class TranslatedTags extends Tags implements ITranslated
             : false;
         if ($this->getTagSortSourceTable()) {
             $join = sprintf(
-                'JOIN %s ON %s.%s=%s.id',
+                'JOIN %1$s ON %2$s.%3$s=%1$s.id',
                 $this->getTagSortSourceTable(),
-                $this->getTagSource(),
-                $this->getIdColumn(),
-                $this->getTagSortSourceTable()
+                $strTableName,
+                $strColNameId
             );
 
             if ($this->getTagSortSourceColumn(true)) {
@@ -531,16 +547,7 @@ class TranslatedTags extends Tags implements ITranslated
         ))
             ->execute($this->get('id'), $strLangCode);
 
-        while ($objValue->next()) {
-            if (!isset($arrReturn[$objValue->$metaModelItemId])) {
-                $arrReturn[$objValue->$metaModelItemId] = array();
-            }
-            $arrData = $objValue->row();
-            unset($arrData[$metaModelItemId]);
-            $arrReturn[$objValue->$metaModelItemId][$objValue->$strColNameId] = $arrData;
-        }
-
-        return $arrReturn;
+        return $this->convertRows($objValue, $metaModelItemId, $strColNameId);
     }
 
     /**
@@ -596,5 +603,29 @@ class TranslatedTags extends Tags implements ITranslated
         );
 
         return $objFilterRule->getMatchingIds();
+    }
+
+    /**
+     * Convert the database result to an result array.
+     *
+     * @param Result $dbResult    The database result.
+     * @param string $idColumn    The id column name.
+     * @param string $valueColumn The value column name.
+     *
+     * @return array
+     */
+    private function convertRows(Result $dbResult, $idColumn, $valueColumn)
+    {
+        $result = [];
+        while ($dbResult->next()) {
+            if (!isset($result[$dbResult->$idColumn])) {
+                $result[$dbResult->$idColumn] = [];
+            }
+            $data = $dbResult->row();
+            unset($data[$idColumn]);
+            $result[$dbResult->$idColumn][$dbResult->$valueColumn] = $data;
+        }
+
+        return $result;
     }
 }
