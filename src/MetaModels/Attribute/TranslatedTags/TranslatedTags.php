@@ -208,6 +208,9 @@ class TranslatedTags extends Tags implements ITranslated
      * @return int[] a list of all matching value ids.
      *
      * @see TranslatedTags::getFilterOptions().
+     *
+     * @@SuppressWarnings(PHPMD.ExcessiveMethodLength)
+     * @@SuppressWarnings(PHPMD.NPathComplexity)
      */
     protected function getValueIds($arrIds, $blnUsedOnly, &$arrCount = null)
     {
