@@ -66,20 +66,19 @@ class TranslatedTags extends Tags implements ITranslated
     /**
      * Retrieve the sorting source column.
      *
-     * @param bool $prefixWithTable Flag if the column name shall be prefixed with the table name "<table>.<column>".
+     * @param string $prefix The prefix (e.g. table name) for a return value like "<table>.<column>".
      *
      * @return string
      */
-    protected function getTagSortSourceColumn($prefixWithTable)
+    protected function getTagSortSourceColumn($prefix = null)
     {
         $column = $this->get('tag_srcsorting');
-
         if (!$column) {
             return null;
         }
 
-        if ($prefixWithTable) {
-            return $this->getTagSortSourceTable() . '.' . $column;
+        if (null !== $prefix) {
+            return $prefix.'.'.$column;
         }
 
         return $column;
@@ -109,7 +108,7 @@ class TranslatedTags extends Tags implements ITranslated
      *
      * @param int[] $ids The ids of the items for which the tag count shall be determined.
      *
-     * @return array
+     * @return int[] The counts in the array format 'item_id' => count
      */
     public function getTagCount($ids)
     {
@@ -141,11 +140,11 @@ class TranslatedTags extends Tags implements ITranslated
     /**
      * Convert the value ids to a result array.
      *
-     * @param Statement     $valueResult The database result.
+     * @param Statement  $valueResult The database result.
      *
      * @param null|array $counter     The destination for the counter values.
      *
-     * @return array
+     * @return int[] The value ids that are represented by the passed database statement.
      */
     protected function convertValueIds($valueResult, &$counter = null)
     {
@@ -189,12 +188,12 @@ class TranslatedTags extends Tags implements ITranslated
      * fallback languages into account.
      * This method is mainly intended as a helper for TranslatedTags::getFilterOptions().
      *
-     * @param string[]|null $ids         A list of item ids that the result shall be limited to.
+     * @param string[]|null $ids      A list of item ids that the result shall be limited to.
      *
-     * @param bool     $usedOnly    Do only return ids that have matches in the real table.
+     * @param bool          $usedOnly Do only return ids that have matches in the real table.
      *
-     * @param null     $count       Array to where the amount of items per tag shall be stored. May be null to return
-     *                              nothing.
+     * @param null          $count    Array to where the amount of items per tag shall be stored. May be null to return
+     *                                nothing.
      *
      * @return int[] a list of all matching value ids.
      *
@@ -240,8 +239,8 @@ class TranslatedTags extends Tags implements ITranslated
                     'source.'.$this->getIdColumn().'=sort.id'
                 );
 
-                if ($this->getTagSortSourceColumn(true)) {
-                    $statement->orderBy($this->getTagSortSourceColumn(true));
+                if ($this->getTagSortSourceColumn()) {
+                    $statement->orderBy($this->getTagSortSourceColumn('sort'));
                 }
             }
 
@@ -278,8 +277,8 @@ class TranslatedTags extends Tags implements ITranslated
                         'source.'.$this->getIdColumn().'=sort.id'
                     );
 
-                if ($this->getTagSortSourceColumn(true)) {
-                    $statement->orderBy($this->getTagSortSourceColumn(true));
+                if ($this->getTagSortSourceColumn()) {
+                    $statement->orderBy($this->getTagSortSourceColumn('sort'));
                 }
             }
 
@@ -308,8 +307,8 @@ class TranslatedTags extends Tags implements ITranslated
                         'source.'.$this->getIdColumn().'=sort.id'
                     );
 
-                if ($this->getTagSortSourceColumn(true)) {
-                    $statement->orderBy($this->getTagSortSourceColumn(true));
+                if ($this->getTagSortSourceColumn()) {
+                    $statement->orderBy($this->getTagSortSourceColumn('sort'));
                 }
             }
 
@@ -355,10 +354,15 @@ class TranslatedTags extends Tags implements ITranslated
 
         if ($this->getTagSortSourceTable()) {
             $statement->addSelect($this->getTagSortSourceTable().'.*');
-            $statement->join('s', $this->getTagSortSourceTable(), 'sort', 'source.'.$this->getIdColumn().'=sort.id');
+            $statement->join(
+                's',
+                $this->getTagSortSourceTable(),
+                'sort',
+                $qb->expr()->eq('source.'.$this->getIdColumn(), 'sort.id')
+            );
 
-            if ($this->getTagSortSourceColumn(true)) {
-                $statement->orderBy($this->getTagSortSourceColumn(true));
+            if ($this->getTagSortSourceColumn()) {
+                $statement->orderBy($this->getTagSortSourceColumn('sort'));
             }
         }
 
@@ -520,10 +524,15 @@ class TranslatedTags extends Tags implements ITranslated
             ->setParameter('langcode', $strLangCode);
 
         if ($this->getTagSortSourceTable()) {
-            $statement->join('v', $this->getTagSortSourceTable(), 's', 'v.'.$idColName.'=s.id');
+            $statement->join(
+                'v',
+                $this->getTagSortSourceTable(),
+                's',
+                $qb->expr()->eq('v.'.$idColName, 's.id')
+            );
 
-            if ($this->getTagSortSourceColumn(true)) {
-                $statement->addSelect($this->getTagSortSourceColumn(true));
+            if ($this->getTagSortSourceColumn()) {
+                $statement->addSelect($this->getTagSortSourceColumn('s'));
                 $statement->orderBy('srcsorting');
             }
         }
