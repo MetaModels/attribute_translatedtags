@@ -20,7 +20,7 @@
  * @filesource
  */
 
-namespace MetaModels\AttributeTranslatedTagsBundle\EventListener\Table\Attribute;
+namespace MetaModels\AttributeTranslatedTagsBundle\EventListener\DcGeneral\Table\Attribute;
 
 use ContaoCommunityAlliance\DcGeneral\Contao\View\Contao2BackendView\Event\GetPropertyOptionsEvent;
 use Doctrine\DBAL\Connection;

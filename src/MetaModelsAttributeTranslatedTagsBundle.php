@@ -21,7 +21,9 @@
 namespace MetaModels\AttributeTranslatedTagsBundle;
 
 
-class MetaModelsAttributeTranslatedTagsBundle
+use Symfony\Component\HttpKernel\Bundle\Bundle;
+
+class MetaModelsAttributeTranslatedTagsBundle extends Bundle
 {
 
 }

@@ -1,6 +1,6 @@
 services:
     metamodels.attribute_translatedtags.listeners.propery_options:
-        class: MetaModels\AttributeTranslatedTagsBundle\EventListener\Table\Attribute\PropertyOptionsListener
+        class: MetaModels\AttributeTranslatedTagsBundle\EventListener\DcGeneral\Table\Attribute\PropertyOptionsListener
         arguments:
             - '@metamodels.factory'
             - '@database_connection'
