@@ -120,9 +120,21 @@ class PropertyOptionsListener
             return;
         }
 
-        $sqlTable     = $this->translator->trans('tag_table_type.sql-table', [], 'contao_tl_metamodel_attribute');
-        $translated   = $this->translator->trans('tag_table_type.translated', [], 'contao_tl_metamodel_attribute');
-        $untranslated = $this->translator->trans('tag_table_type.untranslated', [], 'contao_tl_metamodel_attribute');
+        $sqlTable     = $this->translator->trans(
+            'tl_metamodel_attribute.tag_table_type.sql-table',
+            [],
+            'contao_tl_metamodel_attribute'
+        );
+        $translated   = $this->translator->trans(
+            'tl_metamodel_attribute.tag_table_type.translated',
+            [],
+            'contao_tl_metamodel_attribute'
+        );
+        $untranslated = $this->translator->trans(
+            'tl_metamodel_attribute.tag_table_type.untranslated',
+            [],
+            'contao_tl_metamodel_attribute'
+        );
 
         $result = $this->getMetaModelTableNames($translated, $untranslated);
         foreach ($this->connection->getSchemaManager()->listTableNames() as $table) {
@@ -131,15 +143,15 @@ class PropertyOptionsListener
             }
         }
 
-        if (is_array($result[$translated])) {
+        if (\is_array($result[$translated])) {
             asort($result[$translated]);
         }
 
-        if (is_array($result[$untranslated])) {
+        if (\is_array($result[$untranslated])) {
             asort($result[$untranslated]);
         }
 
-        if (is_array($result[$sqlTable])) {
+        if (\is_array($result[$sqlTable])) {
             asort($result[$sqlTable]);
         }
 
@@ -251,14 +263,23 @@ class PropertyOptionsListener
             $attributes = $this->getAttributeNamesFrom($table);
             asort($attributes);
 
+            $sql       = $this->translator->trans(
+                'tl_metamodel_attribute.tag_column_type.sql',
+                [],
+                'contao_tl_metamodel_attribute'
+            );
+            $attribute = $this->translator->trans(
+                'tl_metamodel_attribute.tag_column_type.attribute',
+                [],
+                'contao_tl_metamodel_attribute'
+            );
+
             return [
-                $this->translator->trans('tag_column_type.sql', [], 'contao_tl_metamodel_attribute')       =>
-                    array_diff_key(
-                        $this->getColumnNamesFromTable($table),
-                        array_flip(array_keys($attributes))
-                    ),
-                $this->translator->trans('tag_column_type.attribute', [], 'contao_tl_metamodel_attribute') =>
-                    $attributes,
+                $sql       => array_diff_key(
+                    $this->getColumnNamesFromTable($table),
+                    array_flip(array_keys($attributes))
+                ),
+                $attribute => $attributes,
             ];
         }
 
