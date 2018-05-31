@@ -21,11 +21,12 @@ namespace MetaModels\Test\Attribute\TranslatedTags;
 use MetaModels\Attribute\TranslatedTags\TranslatedTags;
 use MetaModels\IMetaModel;
 use MetaModels\MetaModel;
+use PHPUnit\Framework\TestCase;
 
 /**
  * Unit tests to test class TranslatedTags.
  */
-class TranslatedTagsTest extends \PHPUnit_Framework_TestCase
+class TranslatedTagsTest extends TestCase
 {
     /**
      * Mock a MetaModel.
@@ -37,11 +38,7 @@ class TranslatedTagsTest extends \PHPUnit_Framework_TestCase
      */
     protected function mockMetaModel($language, $fallbackLanguage)
     {
-        $metaModel = $this->getMock(
-            MetaModel::class,
-            [],
-            [[]]
-        );
+        $metaModel = $this->getMockBuilder(MetaModel::class)->setMethods([])->setConstructorArgs([[]])->getMock();
 
         $metaModel
             ->expects($this->any())
