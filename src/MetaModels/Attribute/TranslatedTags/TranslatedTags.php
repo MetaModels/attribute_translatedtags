@@ -3,7 +3,7 @@
 /**
  * This file is part of MetaModels/attribute_translatedtags.
  *
- * (c) 2012-2016 The MetaModels team.
+ * (c) 2012-2018 The MetaModels team.
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -21,8 +21,8 @@
  * @author     David Maack <david.maack@arcor.de>
  * @author     Christian de la Haye <service@delahaye.de>
  * @author     Sven Baumann <baumann.sv@gmail.com>
- * @copyright  2012-2016 The MetaModels team.
- * @license    https://github.com/MetaModels/attribute_translatedtags/blob/master/LICENSE LGPL-3.0
+ * @copyright  2012-2018 The MetaModels team.
+ * @license    https://github.com/MetaModels/attribute_translatedtags/blob/master/LICENSE LGPL-3.0-or-later
  * @filesource
  */
 
@@ -115,16 +115,16 @@ class TranslatedTags extends Tags implements ITranslated
         $objDB        = $this->getDatabase();
         $strTableName = $this->getTagSource();
         $strColNameId = $this->getIdColumn();
-        $arrReturn    = array();
+        $arrReturn    = [];
 
         if ($strTableName && $strColNameId) {
             $objValue = $objDB
-                ->prepare(sprintf(
+                ->prepare(\sprintf(
                     'SELECT `item_id`, count(*) as count
                     FROM `tl_metamodel_tag_relation`
                     WHERE att_id = ? AND item_id IN (%1$s)
                     GROUP BY `item_id`',
-                    implode(',', $arrIds)
+                    \implode(',', $arrIds)
                 ))
                 ->execute($this->get('id'));
 
@@ -133,7 +133,7 @@ class TranslatedTags extends Tags implements ITranslated
                 $itemId = $objValue->item_id;
 
                 if (!isset($arrReturn[$itemId])) {
-                    $arrReturn[$itemId] = array();
+                    $arrReturn[$itemId] = [];
                 }
 
                 /** @noinspection PhpUndefinedFieldInspection */
@@ -154,8 +154,8 @@ class TranslatedTags extends Tags implements ITranslated
      */
     protected function convertValueIds($valueResult, &$counter = null)
     {
-        $result      = array();
-        $aliases     = array();
+        $result      = [];
+        $aliases     = [];
         $idColumn    = $this->getIdColumn();
         $aliasColumn = $this->getAliasColumn();
         while ($valueResult->next()) {
@@ -168,7 +168,7 @@ class TranslatedTags extends Tags implements ITranslated
             $objCount = $this
                 ->getDatabase()
                 ->prepare(
-                    sprintf(
+                    \sprintf(
                         'SELECT value_id, COUNT(value_id) as mm_count
                         FROM tl_metamodel_tag_relation
                         WHERE att_id=?
@@ -177,7 +177,7 @@ class TranslatedTags extends Tags implements ITranslated
                         $this->parameterMask($result)
                     )
                 )
-                ->execute(array_merge(array($this->get('id')), $result));
+                ->execute(\array_merge([$this->get('id')], $result));
             /** @noinspection PhpUndefinedFieldInspection */
             $amount = $objCount->mm_count;
             /** @noinspection PhpUndefinedFieldInspection */
@@ -214,8 +214,8 @@ class TranslatedTags extends Tags implements ITranslated
      */
     protected function getValueIds($arrIds, $blnUsedOnly, &$arrCount = null)
     {
-        if ($arrIds === array()) {
-            return array();
+        if ($arrIds === []) {
+            return [];
         }
 
         // Get name of the alias column.
@@ -233,7 +233,7 @@ class TranslatedTags extends Tags implements ITranslated
 
         if ($this->getTagSortSourceTable()) {
             $fields = ', ' . $this->getTagSortSourceTable() . '.*';
-            $join   = sprintf(
+            $join   = \sprintf(
                 'JOIN %s ON %s.%s=%s.id',
                 $this->getTagSortSourceTable(),
                 $this->getTagSource(),
@@ -247,7 +247,7 @@ class TranslatedTags extends Tags implements ITranslated
         }
 
         if ($arrIds !== null) {
-            $objValueIds = $objDB->prepare(sprintf(
+            $objValueIds = $objDB->prepare(\sprintf(
                 'SELECT COUNT(%1$s.%2$s) as mm_count, %1$s.%2$s, %1$s.%9$s %6$s
                 FROM %1$s
                 %8$s
@@ -261,7 +261,7 @@ class TranslatedTags extends Tags implements ITranslated
                 // @codingStandardsIgnoreStart - We want to keep the numbers as comment at the end of the following lines.
                 $this->getTagSource(),      // 1
                 $this->getIdColumn(),       // 2
-                implode(',', $arrIds),      // 3
+                \implode(',', $arrIds),      // 3
                 $this->getSortingColumn(),  // 4
                 $where,                     // 5
                 $fields,                    // 6
@@ -272,7 +272,7 @@ class TranslatedTags extends Tags implements ITranslated
             ))
                 ->execute($this->get('id'));
         } elseif ($blnUsedOnly) {
-            $objValueIds = $objDB->prepare(sprintf(
+            $objValueIds = $objDB->prepare(\sprintf(
                 'SELECT COUNT(value_id) as mm_count, value_id AS %1$s, %3$s.%8$s %5$s
                 FROM tl_metamodel_tag_relation
                 RIGHT JOIN %3$s ON(tl_metamodel_tag_relation.value_id=%3$s.%1$s)
@@ -293,7 +293,7 @@ class TranslatedTags extends Tags implements ITranslated
             ))
                 ->execute($this->get('id'));
         } else {
-            $objValueIds = $objDB->prepare(sprintf(
+            $objValueIds = $objDB->prepare(\sprintf(
                 'SELECT COUNT(%1$s.%2$s) as mm_count, %1$s.%2$s, %1$s.%8$s %5$s
                 FROM %1$s
                 %7$s
@@ -305,7 +305,7 @@ class TranslatedTags extends Tags implements ITranslated
                 $this->getIdColumn(),      // 2
                 $this->getSortingColumn(), // 3
                 $where
-                    ? 'WHERE ' . substr($where, 4)
+                    ? 'WHERE ' . \substr($where, 4)
                     : '',                  // 4
                 $fields,                   // 5
                 $sorting,                  // 6
@@ -341,7 +341,7 @@ class TranslatedTags extends Tags implements ITranslated
             : false;
         if ($this->getTagSortSourceTable()) {
             $fields = ', ' . $this->getTagSortSourceTable() . '.*';
-            $join   = sprintf(
+            $join   = \sprintf(
                 'JOIN %s ON %s.%s=%s.id',
                 $this->getTagSortSourceTable(),
                 $this->getTagSource(),
@@ -355,7 +355,7 @@ class TranslatedTags extends Tags implements ITranslated
         }
 
         // Now for the retrieval, first with the real language.
-        return $this->getDatabase()->prepare(sprintf(
+        return $this->getDatabase()->prepare(\sprintf(
             'SELECT %1$s.* %7$s
             FROM %1$s
             %9$s
@@ -365,7 +365,7 @@ class TranslatedTags extends Tags implements ITranslated
             // @codingStandardsIgnoreStart - We want to keep the numbers as comment at the end of the following lines.
             $this->getTagSource(),        // 1
             $this->getIdColumn(),         // 2
-            implode(',', $arrValueIds),   // 3
+            \implode(',', $arrValueIds),   // 3
             $this->getTagLangColumn(),    // 4
             $this->getSortingColumn(),    // 5
             $where,                       // 6
@@ -382,9 +382,14 @@ class TranslatedTags extends Tags implements ITranslated
      */
     public function getAttributeSettingNames()
     {
-        return array_merge(parent::getAttributeSettingNames(), array(
-            'tag_langcolumn', 'tag_srctable', 'tag_srcsorting'
-        ));
+        return \array_merge(
+            parent::getAttributeSettingNames(),
+            [
+                'tag_langcolumn',
+                'tag_srctable',
+                'tag_srcsorting'
+            ]
+        );
     }
 
     /**
@@ -393,15 +398,15 @@ class TranslatedTags extends Tags implements ITranslated
     public function getFilterOptions($idList, $usedOnly, &$arrCount = null)
     {
         if (!$this->getTagSource() && $this->getIdColumn()) {
-            return array();
+            return [];
         }
 
-        $arrReturn    = array();
+        $arrReturn    = [];
         $strColNameId = $this->getIdColumn();
 
         // Fetch the value ids.
         $arrValueIds = $this->getValueIds($idList, $usedOnly, $arrCount);
-        if (!count($arrValueIds)) {
+        if (!\count($arrValueIds)) {
             return $arrReturn;
         }
 
@@ -410,13 +415,13 @@ class TranslatedTags extends Tags implements ITranslated
 
         // Now for the retrieval, first with the real language.
         $objValue             = $this->getValues($arrValueIds, $this->getMetaModel()->getActiveLanguage());
-        $arrValueIdsRetrieved = array();
+        $arrValueIdsRetrieved = [];
         while ($objValue->next()) {
             $arrValueIdsRetrieved[]                 = $objValue->$strColNameId;
             $arrReturn[$objValue->$strColNameAlias] = $objValue->$strColNameValue;
         }
         // Determine missing ids.
-        $arrValueIds = array_diff($arrValueIds, $arrValueIdsRetrieved);
+        $arrValueIds = \array_diff($arrValueIds, $arrValueIdsRetrieved);
         // If there are missing ids and the fallback language is different than the current language, then fetch
         // those now.
         if ($arrValueIds
@@ -445,15 +450,15 @@ class TranslatedTags extends Tags implements ITranslated
         // Check if we got all tags.
         foreach ($arrReturn as $key => $results) {
             // Remove matching tags.
-            if (count($results) == $arrTagCount[$key]) {
+            if (\count($results) == $arrTagCount[$key]) {
                 unset($arrTagCount[$key]);
             }
         }
 
-        $arrFallbackIds = array_keys($arrTagCount);
+        $arrFallbackIds = \array_keys($arrTagCount);
 
         // Second round, fetch fallback languages if not all items could be resolved.
-        if ((count($arrFallbackIds) > 0) && ($strActiveLanguage != $strFallbackLanguage)) {
+        if ((\count($arrFallbackIds) > 0) && ($strActiveLanguage != $strFallbackLanguage)) {
             $arrFallbackData = $this->getTranslatedDataFor($arrFallbackIds, $strFallbackLanguage);
 
             // Cannot use array_merge here as it would renumber the keys.
@@ -473,7 +478,7 @@ class TranslatedTags extends Tags implements ITranslated
      */
     public function searchFor($strPattern)
     {
-        return $this->searchForInLanguages($strPattern, array($this->getMetaModel()->getActiveLanguage()));
+        return $this->searchForInLanguages($strPattern, [$this->getMetaModel()->getActiveLanguage()]);
     }
 
     /**
@@ -501,7 +506,7 @@ class TranslatedTags extends Tags implements ITranslated
         $strSortColumn      = $this->getSortingColumn();
 
         if (!$this->isProperlyConfigured()) {
-            return array();
+            return [];
         }
 
         $metaModelItemId = $this->getMetaModel()->getTableName() . '_id';
@@ -512,7 +517,7 @@ class TranslatedTags extends Tags implements ITranslated
             ? 'AND (' . $this->getWhereColumn() . ')'
             : false;
         if ($this->getTagSortSourceTable()) {
-            $join = sprintf(
+            $join = \sprintf(
                 'JOIN %1$s ON %2$s.%3$s=%1$s.id',
                 $this->getTagSortSourceTable(),
                 $strTableName,
@@ -524,7 +529,7 @@ class TranslatedTags extends Tags implements ITranslated
             }
         }
 
-        $objValue = $objDB->prepare(sprintf(
+        $objValue = $objDB->prepare(\sprintf(
             'SELECT %1$s.*, tl_metamodel_tag_relation.item_id AS %2$s %8$s
             FROM %1$s
             LEFT JOIN tl_metamodel_tag_relation ON (
@@ -539,7 +544,7 @@ class TranslatedTags extends Tags implements ITranslated
             $strTableName,                   // 1
             $metaModelItemId,                // 2
             $strColNameId,                   // 3
-            implode(',', $arrIds),           // 4
+            \implode(',', $arrIds),           // 4
             $strColNameLangCode,             // 5
             $strSortColumn,                  // 6
             $where,                          // 7
@@ -567,9 +572,9 @@ class TranslatedTags extends Tags implements ITranslated
     /**
      * {@inheritdoc}
      */
-    public function searchForInLanguages($strPattern, $arrLanguages = array())
+    public function searchForInLanguages($strPattern, $arrLanguages = [])
     {
-        $arrParams          = array($strPattern, $strPattern);
+        $arrParams          = [$strPattern, $strPattern];
         $strTableName       = $this->getTagSource();
         $strColNameId       = $this->getIdColumn();
         $strColNameLangCode = $this->getTagLangColumn();
@@ -578,11 +583,11 @@ class TranslatedTags extends Tags implements ITranslated
 
         $languages = '';
         if ($arrLanguages) {
-            $languages = sprintf(' AND %s IN (\'%s\')', $strColNameLangCode, implode('\',\'', $arrLanguages));
+            $languages = \sprintf(' AND %s IN (\'%s\')', $strColNameLangCode, \implode('\',\'', $arrLanguages));
         }
 
         $objFilterRule = new SimpleQuery(
-            sprintf(
+            \sprintf(
                 'SELECT item_id
                 FROM tl_metamodel_tag_relation
                 WHERE value_id IN (
