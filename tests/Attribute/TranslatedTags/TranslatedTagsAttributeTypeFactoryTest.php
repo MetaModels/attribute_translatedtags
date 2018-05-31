@@ -20,19 +20,20 @@
  * @filesource
  */
 
-namespace MetaModels\Test\Attribute\TranslatedTags;
+namespace MetaModels\AttributeTranslatedTagsBundle\Test\Attribute\TranslatedTags;
 
+use Doctrine\DBAL\Connection;
 use MetaModels\Attribute\IAttributeTypeFactory;
-use MetaModels\Attribute\TranslatedTags\AttributeTypeFactory;
+use MetaModels\AttributeTranslatedTagsBundle\Attribute\AttributeTypeFactory;
+use MetaModels\AttributeTranslatedTagsBundle\Attribute\TranslatedTags;
 use MetaModels\IMetaModel;
-use MetaModels\Test\Attribute\AttributeTypeFactoryTest;
 use MetaModels\MetaModel;
-use MetaModels\Attribute\TranslatedTags\TranslatedTags;
+use PHPUnit\Framework\TestCase;
 
 /**
  * Test the attribute factory.
  */
-class TranslatedTagsAttributeTypeFactoryTest extends AttributeTypeFactoryTest
+class TranslatedTagsAttributeTypeFactoryTest extends TestCase
 {
     /**
      * Mock a MetaModel.
@@ -74,7 +75,7 @@ class TranslatedTagsAttributeTypeFactoryTest extends AttributeTypeFactoryTest
      */
     protected function getAttributeFactories()
     {
-        return [new AttributeTypeFactory()];
+        return [new AttributeTypeFactory(Connection::class)];
     }
 
     /**
@@ -84,7 +85,7 @@ class TranslatedTagsAttributeTypeFactoryTest extends AttributeTypeFactoryTest
      */
     public function testCreateTags()
     {
-        $factory   = new AttributeTypeFactory();
+        $factory   = new AttributeTypeFactory(Connection::class);
         $values = [
             'tag_table'  => 'tl_page',
             'tag_column' => 'pid',

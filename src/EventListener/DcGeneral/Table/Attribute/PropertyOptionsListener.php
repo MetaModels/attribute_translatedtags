@@ -83,13 +83,13 @@ class PropertyOptionsListener
         }
 
         $table = $event->getModel()->getProperty('tag_table');
-        if (0 === strpos($table, 'mm_')) {
+        if (0 === \strpos($table, 'mm_')) {
             $attributes = $this->getAttributeNamesFrom($table);
-            asort($attributes);
+            \asort($attributes);
             $event->setOptions(
                 [
                     $GLOBALS['TL_LANG']['tl_metamodel_attribute']['tag_column_type']['sql']
-                    => array_diff_key($this->getColumnNamesFrom($table), array_flip(array_keys($attributes))),
+                    => \array_diff_key($this->getColumnNamesFrom($table), \array_flip(\array_keys($attributes))),
                     $GLOBALS['TL_LANG']['tl_metamodel_attribute']['tag_column_type']['attribute']
                     => $attributes,
                 ]
@@ -99,7 +99,7 @@ class PropertyOptionsListener
         }
         $result = $this->getColumnNamesFrom($table);
         if (!empty($result)) {
-            asort($result);
+            \asort($result);
             $event->setOptions($result);
         }
     }
@@ -138,21 +138,21 @@ class PropertyOptionsListener
 
         $result = $this->getMetaModelTableNames($translated, $untranslated);
         foreach ($this->connection->getSchemaManager()->listTableNames() as $table) {
-            if (0 !== strpos($table, 'mm_')) {
+            if (0 !== \strpos($table, 'mm_')) {
                 $result[$sqlTable][$table] = $table;
             }
         }
 
         if (\is_array($result[$translated])) {
-            asort($result[$translated]);
+            \asort($result[$translated]);
         }
 
         if (\is_array($result[$untranslated])) {
-            asort($result[$untranslated]);
+            \asort($result[$untranslated]);
         }
 
         if (\is_array($result[$sqlTable])) {
-            asort($result[$sqlTable]);
+            \asort($result[$sqlTable]);
         }
 
         $event->setOptions($result);
@@ -183,7 +183,7 @@ class PropertyOptionsListener
 
         $indexes = $this->connection->getSchemaManager()->listTableIndexes($table);
         foreach ($this->connection->getSchemaManager()->listTableColumns($table) as $column) {
-            if (array_key_exists($column->getName(), $indexes)) {
+            if (\array_key_exists($column->getName(), $indexes)) {
                 continue;
             }
             $colName = $column->getName();
@@ -215,9 +215,9 @@ class PropertyOptionsListener
             }
 
             if ($metaModel->isTranslated()) {
-                $result[$keyTranslated][$table] = sprintf('%s (%s)', $metaModel->get('name'), $table);
+                $result[$keyTranslated][$table] = \sprintf('%s (%s)', $metaModel->get('name'), $table);
             } else {
-                $result[$keyUntranslated][$table] = sprintf('%s (%s)', $metaModel->get('name'), $table);
+                $result[$keyUntranslated][$table] = \sprintf('%s (%s)', $metaModel->get('name'), $table);
             }
         }
 
@@ -244,7 +244,7 @@ class PropertyOptionsListener
             $column = $attribute->getColName();
             $type   = $attribute->get('type');
 
-            $result[$column] = sprintf('%s (%s - %s)', $name, $column, $type);
+            $result[$column] = \sprintf('%s (%s - %s)', $name, $column, $type);
         }
 
         return $result;
@@ -259,9 +259,9 @@ class PropertyOptionsListener
      */
     private function getColumnNamesFrom($table)
     {
-        if (0 === strpos($table, 'mm_')) {
+        if (0 === \strpos($table, 'mm_')) {
             $attributes = $this->getAttributeNamesFrom($table);
-            asort($attributes);
+            \asort($attributes);
 
             $sql       = $this->translator->trans(
                 'tl_metamodel_attribute.tag_column_type.sql',
@@ -275,9 +275,9 @@ class PropertyOptionsListener
             );
 
             return [
-                $sql       => array_diff_key(
+                $sql       => \array_diff_key(
                     $this->getColumnNamesFromTable($table),
-                    array_flip(array_keys($attributes))
+                    \array_flip(\array_keys($attributes))
                 ),
                 $attribute => $attributes,
             ];
@@ -311,7 +311,7 @@ class PropertyOptionsListener
         }
 
         if (!empty($result)) {
-            asort($result);
+            \asort($result);
 
             return $result;
         }

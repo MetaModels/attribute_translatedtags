@@ -20,9 +20,9 @@
  * @filesource
  */
 
-namespace MetaModels\Test\Attribute\TranslatedTags;
+namespace MetaModels\AttributeTranslatedTagsBundle\Test\Attribute\TranslatedTags;
 
-use MetaModels\Attribute\TranslatedTags\TranslatedTags;
+use MetaModels\AttributeTranslatedTagsBundle\Attribute\TranslatedTags;
 use MetaModels\IMetaModel;
 use MetaModels\MetaModel;
 use PHPUnit\Framework\TestCase;

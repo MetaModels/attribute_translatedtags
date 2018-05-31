@@ -376,7 +376,7 @@ class TranslatedTags extends Tags implements ITranslated
      */
     public function getAttributeSettingNames()
     {
-        return array_merge(
+        return \array_merge(
             parent::getAttributeSettingNames(),
             [
                 'tag_langcolumn',
@@ -448,7 +448,7 @@ class TranslatedTags extends Tags implements ITranslated
             }
         }
 
-        $arrFallbackIds = array_keys($tagCount);
+        $arrFallbackIds = \array_keys($tagCount);
 
         // Second round, fetch fallback languages if not all items could be resolved.
         if (($activeLanguage !== $fallbackLanguage) && (\count($arrFallbackIds) > 0)) {
