@@ -14,6 +14,7 @@
  * @subpackage AttributeTranslatedTags
  * @author     Christian Schiffler <c.schiffler@cyberspectrum.de>
  * @author     Richard Henkenjohann <richardhenkenjohann@googlemail.com
+ * @author     Sven Baumann <baumann.sv@gmail.com>
  * @copyright  2012-2018 The MetaModels team.
  * @license    https://github.com/MetaModels/attribute_translatedtags/blob/master/LICENSE LGPL-3.0
  * @filesource
@@ -22,11 +23,14 @@
 namespace MetaModels\Test\Attribute\TranslatedTags;
 
 use MetaModels\Attribute\TranslatedTags\TranslatedTags;
+use MetaModels\IMetaModel;
+use MetaModels\MetaModel;
+use PHPUnit\Framework\TestCase;
 
 /**
  * Unit tests to test class TranslatedTags.
  */
-class TranslatedTagsTest extends \PHPUnit_Framework_TestCase
+class TranslatedTagsTest extends TestCase
 {
     /**
      * Mock a MetaModel.
@@ -38,11 +42,7 @@ class TranslatedTagsTest extends \PHPUnit_Framework_TestCase
      */
     protected function mockMetaModel($language, $fallbackLanguage)
     {
-        $metaModel = $this->getMock(
-            'MetaModels\MetaModel',
-            array(),
-            array(array())
-        );
+        $metaModel = $this->getMockBuilder(MetaModel::class)->setMethods([])->setConstructorArgs([[]])->getMock();
 
         $metaModel
             ->expects($this->any())
@@ -70,6 +70,6 @@ class TranslatedTagsTest extends \PHPUnit_Framework_TestCase
     public function testInstantiation()
     {
         $text = new TranslatedTags($this->mockMetaModel('en', 'en'));
-        $this->assertInstanceOf('MetaModels\Attribute\TranslatedTags\TranslatedTags', $text);
+        $this->assertInstanceOf(TranslatedTags::class, $text);
     }
 }
