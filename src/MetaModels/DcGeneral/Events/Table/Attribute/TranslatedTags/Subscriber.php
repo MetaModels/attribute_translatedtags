@@ -41,15 +41,15 @@ class Subscriber extends \MetaModels\DcGeneral\Events\Table\Attribute\Tags\Subsc
         $this
             ->addListener(
                 GetPropertyOptionsEvent::NAME,
-                array($this, 'getLangColumnNames')
+                [$this, 'getLangColumnNames']
             )
             ->addListener(
                 GetPropertyOptionsEvent::NAME,
-                array($this, 'handleSrcTableNames')
+                [$this, 'handleSrcTableNames']
             )
             ->addListener(
                 GetPropertyOptionsEvent::NAME,
-                array($this, 'getSourceColumnNames')
+                [$this, 'getSourceColumnNames']
             );
     }
 
@@ -110,7 +110,7 @@ class Subscriber extends \MetaModels\DcGeneral\Events\Table\Attribute\Tags\Subsc
             return;
         }
 
-        $result = array();
+        $result = [];
 
         foreach ($database->listFields($table) as $arrInfo) {
             if ($arrInfo['type'] != 'index') {

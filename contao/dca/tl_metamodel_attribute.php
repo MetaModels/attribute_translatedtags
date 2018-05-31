@@ -26,56 +26,49 @@
  * @filesource
  */
 
-$GLOBALS['TL_DCA']['tl_metamodel_attribute']['metapalettes']['translatedtags extends tags'] = array
-(
-    '+display' => array('tag_langcolumn after tag_id', 'tag_srctable', 'tag_srcsorting')
-);
+$GLOBALS['TL_DCA']['tl_metamodel_attribute']['metapalettes']['translatedtags extends tags'] = [
+    '+display' => ['tag_langcolumn after tag_id', 'tag_srctable', 'tag_srcsorting']
+];
 
-$GLOBALS['TL_DCA']['tl_metamodel_attribute']['fields']['tag_langcolumn'] = array
-(
+$GLOBALS['TL_DCA']['tl_metamodel_attribute']['fields']['tag_langcolumn'] = [
     'label'                  => &$GLOBALS['TL_LANG']['tl_metamodel_attribute']['tag_langcolumn'],
     'exclude'                => true,
     'inputType'              => 'select',
-    'eval'                   => array
-    (
+    'eval'                   => [
         'includeBlankOption' => true,
         'doNotSaveEmpty'     => true,
         'alwaysSave'         => true,
         'submitOnChange'     => true,
         'tl_class'           => 'w50',
         'chosen'             => 'true'
-    ),
+    ],
     'sql'                    => 'varchar(255) NOT NULL default \'\''
-);
+];
 
-$GLOBALS['TL_DCA']['tl_metamodel_attribute']['fields']['tag_srctable'] = array
-(
+$GLOBALS['TL_DCA']['tl_metamodel_attribute']['fields']['tag_srctable'] = [
     'label'                  => &$GLOBALS['TL_LANG']['tl_metamodel_attribute']['tag_srctable'],
     'exclude'                => true,
     'inputType'              => 'select',
-    'eval'                   => array
-    (
+    'eval'                   => [
         'includeBlankOption' => true,
         'alwaysSave'         => true,
         'submitOnChange'     => true,
         'tl_class'           => 'w50',
         'chosen'             => 'true'
-    ),
+    ],
     'sql'                    => 'varchar(255) NOT NULL default \'\''
-);
+];
 
-$GLOBALS['TL_DCA']['tl_metamodel_attribute']['fields']['tag_srcsorting'] = array
-(
+$GLOBALS['TL_DCA']['tl_metamodel_attribute']['fields']['tag_srcsorting'] = [
     'label'                  => &$GLOBALS['TL_LANG']['tl_metamodel_attribute']['tag_srcsorting'],
     'exclude'                => true,
     'inputType'              => 'select',
-    'eval'                   => array
-    (
+    'eval'                   => [
         'includeBlankOption' => true,
         'alwaysSave'         => true,
         'submitOnChange'     => true,
         'tl_class'           => 'w50',
         'chosen'             => 'true'
-    ),
+    ],
     'sql'                    => 'varchar(255) NOT NULL default \'\''
-);
+];

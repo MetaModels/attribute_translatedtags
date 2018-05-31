@@ -9,6 +9,7 @@
  * @package    MetaModels
  * @subpackage Tests
  * @author     Christian Schiffler <c.schiffler@cyberspectrum.de>
+ * @author     Sven Baumann <baumann.sv@gmail.com>
  * @copyright  The MetaModels team.
  * @license    LGPL.
  * @filesource
@@ -41,8 +42,8 @@ class TranslatedTagsAttributeTypeFactoryTest extends AttributeTypeFactoryTest
     {
         $metaModel = $this->getMock(
             'MetaModels\MetaModel',
-            array(),
-            array(array())
+            [],
+            [[]]
         );
 
         $metaModel
@@ -70,7 +71,7 @@ class TranslatedTagsAttributeTypeFactoryTest extends AttributeTypeFactoryTest
      */
     protected function getAttributeFactories()
     {
-        return array(new AttributeTypeFactory());
+        return [new AttributeTypeFactory()];
     }
 
     /**
@@ -81,11 +82,11 @@ class TranslatedTagsAttributeTypeFactoryTest extends AttributeTypeFactoryTest
     public function testCreateTags()
     {
         $factory   = new AttributeTypeFactory();
-        $values    = array(
+        $values = [
             'tag_table'  => 'tl_page',
             'tag_column' => 'pid',
             'tag_alias'  => 'alias',
-        );
+        ];
         $attribute = $factory->createInstance(
             $values,
             $this->mockMetaModel('mm_test', 'de', 'en')

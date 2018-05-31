@@ -10,6 +10,7 @@
  * @package    MetaModels
  * @subpackage Tests
  * @author     Christian Schiffler <c.schiffler@cyberspectrum.de>
+ * @author     Sven Baumann <baumann.sv@gmail.com>
  * @copyright  The MetaModels team.
  * @license    LGPL.
  * @filesource
@@ -36,8 +37,8 @@ class TranslatedTagsTest extends \PHPUnit_Framework_TestCase
     {
         $metaModel = $this->getMock(
             'MetaModels\MetaModel',
-            array(),
-            array(array())
+            [],
+            [[]]
         );
 
         $metaModel

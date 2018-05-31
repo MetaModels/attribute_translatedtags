@@ -115,7 +115,7 @@ class TranslatedTags extends Tags implements ITranslated
         $objDB        = $this->getDatabase();
         $strTableName = $this->getTagSource();
         $strColNameId = $this->getIdColumn();
-        $arrReturn    = array();
+        $arrReturn    = [];
 
         if ($strTableName && $strColNameId) {
             $objValue = $objDB
@@ -133,7 +133,7 @@ class TranslatedTags extends Tags implements ITranslated
                 $itemId = $objValue->item_id;
 
                 if (!isset($arrReturn[$itemId])) {
-                    $arrReturn[$itemId] = array();
+                    $arrReturn[$itemId] = [];
                 }
 
                 /** @noinspection PhpUndefinedFieldInspection */
@@ -154,8 +154,8 @@ class TranslatedTags extends Tags implements ITranslated
      */
     protected function convertValueIds($valueResult, &$counter = null)
     {
-        $result      = array();
-        $aliases     = array();
+        $result      = [];
+        $aliases     = [];
         $idColumn    = $this->getIdColumn();
         $aliasColumn = $this->getAliasColumn();
         while ($valueResult->next()) {
@@ -177,7 +177,7 @@ class TranslatedTags extends Tags implements ITranslated
                         $this->parameterMask($result)
                     )
                 )
-                ->execute(array_merge(array($this->get('id')), $result));
+                ->execute(array_merge([$this->get('id')], $result));
             /** @noinspection PhpUndefinedFieldInspection */
             $amount = $objCount->mm_count;
             /** @noinspection PhpUndefinedFieldInspection */
@@ -214,8 +214,8 @@ class TranslatedTags extends Tags implements ITranslated
      */
     protected function getValueIds($arrIds, $blnUsedOnly, &$arrCount = null)
     {
-        if ($arrIds === array()) {
-            return array();
+        if ($arrIds === []) {
+            return [];
         }
 
         // Get name of the alias column.
@@ -382,9 +382,14 @@ class TranslatedTags extends Tags implements ITranslated
      */
     public function getAttributeSettingNames()
     {
-        return array_merge(parent::getAttributeSettingNames(), array(
-            'tag_langcolumn', 'tag_srctable', 'tag_srcsorting'
-        ));
+        return array_merge(
+            parent::getAttributeSettingNames(),
+            [
+                'tag_langcolumn',
+                'tag_srctable',
+                'tag_srcsorting'
+            ]
+        );
     }
 
     /**
@@ -393,10 +398,10 @@ class TranslatedTags extends Tags implements ITranslated
     public function getFilterOptions($idList, $usedOnly, &$arrCount = null)
     {
         if (!$this->getTagSource() && $this->getIdColumn()) {
-            return array();
+            return [];
         }
 
-        $arrReturn    = array();
+        $arrReturn    = [];
         $strColNameId = $this->getIdColumn();
 
         // Fetch the value ids.
@@ -410,7 +415,7 @@ class TranslatedTags extends Tags implements ITranslated
 
         // Now for the retrieval, first with the real language.
         $objValue             = $this->getValues($arrValueIds, $this->getMetaModel()->getActiveLanguage());
-        $arrValueIdsRetrieved = array();
+        $arrValueIdsRetrieved = [];
         while ($objValue->next()) {
             $arrValueIdsRetrieved[]                 = $objValue->$strColNameId;
             $arrReturn[$objValue->$strColNameAlias] = $objValue->$strColNameValue;
@@ -473,7 +478,7 @@ class TranslatedTags extends Tags implements ITranslated
      */
     public function searchFor($strPattern)
     {
-        return $this->searchForInLanguages($strPattern, array($this->getMetaModel()->getActiveLanguage()));
+        return $this->searchForInLanguages($strPattern, [$this->getMetaModel()->getActiveLanguage()]);
     }
 
     /**
@@ -501,7 +506,7 @@ class TranslatedTags extends Tags implements ITranslated
         $strSortColumn      = $this->getSortingColumn();
 
         if (!$this->isProperlyConfigured()) {
-            return array();
+            return [];
         }
 
         $metaModelItemId = $this->getMetaModel()->getTableName() . '_id';
@@ -567,9 +572,9 @@ class TranslatedTags extends Tags implements ITranslated
     /**
      * {@inheritdoc}
      */
-    public function searchForInLanguages($strPattern, $arrLanguages = array())
+    public function searchForInLanguages($strPattern, $arrLanguages = [])
     {
-        $arrParams          = array($strPattern, $strPattern);
+        $arrParams          = [$strPattern, $strPattern];
         $strTableName       = $this->getTagSource();
         $strColNameId       = $this->getIdColumn();
         $strColNameLangCode = $this->getTagLangColumn();

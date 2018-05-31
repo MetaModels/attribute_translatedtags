@@ -28,7 +28,8 @@
 /**
  * Register the templates
  */
-TemplateLoader::addFiles(array
-(
-    'mm_attr_translatedtags' => 'system/modules/metamodelsattribute_translatedtags/templates',
-));
+TemplateLoader::addFiles(
+    [
+        'mm_attr_translatedtags' => 'system/modules/metamodelsattribute_translatedtags/templates',
+    ]
+);
