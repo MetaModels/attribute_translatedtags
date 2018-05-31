@@ -19,6 +19,8 @@
 namespace MetaModels\Test\Attribute\TranslatedTags;
 
 use MetaModels\Attribute\TranslatedTags\TranslatedTags;
+use MetaModels\IMetaModel;
+use MetaModels\MetaModel;
 
 /**
  * Unit tests to test class TranslatedTags.
@@ -36,7 +38,7 @@ class TranslatedTagsTest extends \PHPUnit_Framework_TestCase
     protected function mockMetaModel($language, $fallbackLanguage)
     {
         $metaModel = $this->getMock(
-            'MetaModels\MetaModel',
+            MetaModel::class,
             [],
             [[]]
         );
@@ -67,6 +69,6 @@ class TranslatedTagsTest extends \PHPUnit_Framework_TestCase
     public function testInstantiation()
     {
         $text = new TranslatedTags($this->mockMetaModel('en', 'en'));
-        $this->assertInstanceOf('MetaModels\Attribute\TranslatedTags\TranslatedTags', $text);
+        $this->assertInstanceOf(TranslatedTags::class, $text);
     }
 }

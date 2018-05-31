@@ -21,6 +21,8 @@ use MetaModels\Attribute\IAttributeTypeFactory;
 use MetaModels\Attribute\TranslatedTags\AttributeTypeFactory;
 use MetaModels\IMetaModel;
 use MetaModels\Test\Attribute\AttributeTypeFactoryTest;
+use MetaModels\MetaModel;
+use MetaModels\Attribute\TranslatedTags\TranslatedTags;
 
 /**
  * Test the attribute factory.
@@ -41,7 +43,7 @@ class TranslatedTagsAttributeTypeFactoryTest extends AttributeTypeFactoryTest
     protected function mockMetaModel($tableName, $language, $fallbackLanguage)
     {
         $metaModel = $this->getMock(
-            'MetaModels\MetaModel',
+            MetaModel::class,
             [],
             [[]]
         );
@@ -92,7 +94,7 @@ class TranslatedTagsAttributeTypeFactoryTest extends AttributeTypeFactoryTest
             $this->mockMetaModel('mm_test', 'de', 'en')
         );
 
-        $this->assertInstanceOf('MetaModels\Attribute\TranslatedTags\TranslatedTags', $attribute);
+        $this->assertInstanceOf(TranslatedTags::class, $attribute);
 
         foreach ($values as $key => $value) {
             $this->assertEquals($value, $attribute->get($key), $key);

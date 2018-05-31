@@ -39,6 +39,6 @@ class AttributeTypeFactory extends AbstractAttributeTypeFactory
         parent::__construct();
         $this->typeName  = 'translatedtags';
         $this->typeIcon  = 'system/modules/metamodelsattribute_translatedtags/html/tags.png';
-        $this->typeClass = 'MetaModels\Attribute\TranslatedTags\TranslatedTags';
+        $this->typeClass = TranslatedTags::class;
     }
 }

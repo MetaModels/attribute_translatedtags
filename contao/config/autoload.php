@@ -28,7 +28,7 @@
 /**
  * Register the templates
  */
-TemplateLoader::addFiles(
+\Contao\TemplateLoader::addFiles(
     [
         'mm_attr_translatedtags' => 'system/modules/metamodelsattribute_translatedtags/templates',
     ]
