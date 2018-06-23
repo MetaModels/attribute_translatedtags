@@ -452,10 +452,8 @@ class TranslatedTags extends Tags implements ITranslated
 
         // Second round, fetch fallback languages if not all items could be resolved.
         if (($activeLanguage !== $fallbackLanguage) && (\count($arrFallbackIds) > 0)) {
-            $fallbackData = $this->getTranslatedDataFor($arrFallbackIds, $fallbackLanguage);
-
             // Cannot use array_merge here as it would renumber the keys.
-            foreach ($fallbackData as $id => $transValue) {
+            foreach ($this->getTranslatedDataFor($arrFallbackIds, $fallbackLanguage) as $id => $transValue) {
                 foreach ((array)$transValue as $transId => $value) {
                     if (!$return[$id][$transId]) {
                         $return[$id][$transId] = $value;

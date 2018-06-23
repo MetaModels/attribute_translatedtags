@@ -75,7 +75,21 @@ class TranslatedTagsAttributeTypeFactoryTest extends TestCase
      */
     protected function getAttributeFactories()
     {
-        return [new AttributeTypeFactory(Connection::class)];
+        return [new AttributeTypeFactory($this->mockConnection())];
+    }
+
+    /**
+     * Mock the database connection.
+     *
+     * @return \PHPUnit_Framework_MockObject_MockObject|Connection
+     */
+    private function mockConnection()
+    {
+        $connection  = $this->getMockBuilder(Connection::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        return $connection;
     }
 
     /**
@@ -85,7 +99,7 @@ class TranslatedTagsAttributeTypeFactoryTest extends TestCase
      */
     public function testCreateTags()
     {
-        $factory   = new AttributeTypeFactory(Connection::class);
+        $factory   = new AttributeTypeFactory($this->mockConnection());
         $values = [
             'tag_table'  => 'tl_page',
             'tag_column' => 'pid',

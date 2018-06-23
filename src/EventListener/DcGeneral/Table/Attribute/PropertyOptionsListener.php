@@ -206,9 +206,7 @@ class PropertyOptionsListener
     private function getMetaModelTableNames($keyTranslated, $keyUntranslated)
     {
         $result = [];
-        $tables = $this->factory->collectNames();
-
-        foreach ($tables as $table) {
+        foreach ($this->factory->collectNames() as $table) {
             $metaModel = $this->factory->getMetaModel($table);
             if (null === $metaModel) {
                 continue;
@@ -302,9 +300,7 @@ class PropertyOptionsListener
         }
 
         $result    = [];
-        $fieldList = $this->connection->getSchemaManager()->listTableColumns($tableName);
-
-        foreach ($fieldList as $column) {
+        foreach ($this->connection->getSchemaManager()->listTableColumns($tableName) as $column) {
             if (($typeFilter === null) || \in_array($column->getType()->getName(), $typeFilter, true)) {
                 $result[$column->getName()] = $column->getName();
             }
