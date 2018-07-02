@@ -86,12 +86,25 @@ class PropertyOptionsListener
         if (0 === \strpos($table, 'mm_')) {
             $attributes = $this->getAttributeNamesFrom($table);
             \asort($attributes);
+
+            $sqlKey       = $this->translator->trans(
+                'tl_metamodel_attribute.tag_column_type.sql',
+                [],
+                'tl_metamodel_attribute'
+            );
+            $attributeKey = $this->translator->trans(
+                'tl_metamodel_attribute.tag_column_type.attribute',
+                [],
+                'tl_metamodel_attribute'
+            );
+
             $event->setOptions(
                 [
-                    $GLOBALS['TL_LANG']['tl_metamodel_attribute']['tag_column_type']['sql']
-                    => \array_diff_key($this->getColumnNamesFrom($table), \array_flip(\array_keys($attributes))),
-                    $GLOBALS['TL_LANG']['tl_metamodel_attribute']['tag_column_type']['attribute']
-                    => $attributes,
+                    $sqlKey       => \array_diff_key(
+                        $this->getColumnNamesFrom($table),
+                        \array_flip(\array_keys($attributes))
+                    ),
+                    $attributeKey => $attributes,
                 ]
             );
 
@@ -299,7 +312,7 @@ class PropertyOptionsListener
             return [];
         }
 
-        $result    = [];
+        $result = [];
         foreach ($this->connection->getSchemaManager()->listTableColumns($tableName) as $column) {
             if (($typeFilter === null) || \in_array($column->getType()->getName(), $typeFilter, true)) {
                 $result[$column->getName()] = $column->getName();
