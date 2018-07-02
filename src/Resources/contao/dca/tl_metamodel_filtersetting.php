@@ -18,7 +18,7 @@
  * @author     David Maack <david.maack@arcor.de>
  * @author     Carolina M. Koehn <office@kikmedia.de>
  * @author     Sven Baumann <baumann.sv@gmail.com>
- * @author     Richard Henkenjohann <richardhenkenjohann@googlemail.com
+ * @author     Richard Henkenjohann <richardhenkenjohann@googlemail.com>
  * @copyright  2012-2018 The MetaModels team.
  * @license    https://github.com/MetaModels/attribute_translatedtags/blob/master/LICENSE LGPL-3.0-or-later
  * @filesource
