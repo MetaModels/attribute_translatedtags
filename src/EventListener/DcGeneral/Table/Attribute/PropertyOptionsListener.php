@@ -28,7 +28,13 @@ use MetaModels\IFactory;
 use Symfony\Component\Translation\Exception\InvalidArgumentException;
 use Symfony\Component\Translation\TranslatorInterface;
 
-
+/**
+ * Class PropertyOptionsListener
+ *
+ * @package MetaModels\AttributeTranslatedTagsBundle\EventListener\DcGeneral\Table\Attribute
+ *
+ * Loads the property options.
+ */
 class PropertyOptionsListener
 {
 
@@ -124,7 +130,7 @@ class PropertyOptionsListener
      *
      * @return void
      *
-     * @throws InvalidArgumentException If the locale contains invalid characters
+     * @throws InvalidArgumentException If the locale contains invalid characters.
      */
     public function handleSrcTableNames(GetPropertyOptionsEvent $event)
     {

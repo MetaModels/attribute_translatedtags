@@ -33,8 +33,10 @@ class MetaModelsAttributeTranslatedTagsExtension extends Extension
     /**
      * Loads a specific configuration.
      *
-     * @param array            $configs
-     * @param ContainerBuilder $container
+     * @param array            $configs   The config.
+     * @param ContainerBuilder $container The container builder.
+     *
+     * @return void
      *
      * @throws \Exception If something went wrong.
      *

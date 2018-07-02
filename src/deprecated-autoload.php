@@ -18,7 +18,9 @@
  * @filesource
  */
 
-// This hack is to load the "old locations" of the classes.
+/**
+ * This hack is to load the "old locations" of the classes.
+ */
 
 use MetaModels\AttributeTranslatedTagsBundle\Attribute\AttributeTypeFactory;
 use MetaModels\AttributeTranslatedTagsBundle\Attribute\TranslatedTags;
@@ -32,7 +34,7 @@ spl_autoload_register(
 
         if (isset($classes[$class])) {
             // @codingStandardsIgnoreStart Silencing errors is discouraged
-            @trigger_error('Class "'.$class.'" has been renamed to "'.$classes[$class].'"', E_USER_DEPRECATED);
+            @trigger_error('Class "' . $class . '" has been renamed to "' . $classes[$class] . '"', E_USER_DEPRECATED);
             // @codingStandardsIgnoreEnd
 
             if (!class_exists($classes[$class])) {

@@ -23,18 +23,15 @@
  */
 
 $GLOBALS['TL_DCA']['tl_metamodel_dcasetting']['metasubselectpalettes']['attr_id']['translatedtags'] = [
-    'presentation' =>
-        [
-            'tl_class',
-            'tag_as_wizard',
-        ],
-    'functions'    =>
-        [
-            'mandatory',
-        ],
-    'overview'     =>
-        [
-            'filterable',
-            'searchable',
-        ],
+    'presentation' => [
+        'tl_class',
+        'tag_as_wizard',
+    ],
+    'functions'    => [
+        'mandatory',
+    ],
+    'overview'     => [
+        'filterable',
+        'searchable',
+    ],
 ];
