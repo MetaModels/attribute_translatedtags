@@ -199,8 +199,9 @@ class TranslatedTags extends Tags implements ITranslated
      *
      * @see TranslatedTags::getFilterOptions().
      *
-     * @@SuppressWarnings(PHPMD.ExcessiveMethodLength)
-     * @@SuppressWarnings(PHPMD.NPathComplexity)
+     * @SuppressWarnings(PHPMD.ExcessiveMethodLength)
+     * @SuppressWarnings(PHPMD.NPathComplexity)
+     * @SuppressWarnings(PHPMD.CyclomaticComplexity)
      */
     protected function getValueIds($ids, $usedOnly, &$count = null)
     {
