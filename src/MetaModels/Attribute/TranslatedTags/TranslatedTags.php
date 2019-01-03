@@ -31,11 +31,6 @@ use MetaModels\Filter\Rules\SimpleQuery;
 
 /**
  * This is the MetaModelAttribute class for handling translated tag attributes.
- *
- * @package    MetaModels
- * @subpackage AttributeTranslatedTags
- * @author     Christian Schiffler <c.schiffler@cyberspectrum.de>
- * @author     Christian de la Haye <service@delahaye.de>
  */
 class TranslatedTags extends Tags implements ITranslated
 {
