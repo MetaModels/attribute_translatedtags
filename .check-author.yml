@@ -14,3 +14,24 @@ mapping:
   'David Maack <david.maack@arcor.de>':
     - 'David Maack <maack@men-at-work.de>'
   'Christopher Boelter <christopher@boelter.eu>': 'cboelter <christopher@boelter.eu>'
+
+copy-left:
+  'Andreas Isaak <info@andreas-isaak.de>':
+    - src/Attribute/TranslatedTags.php
+    - src/Resources/contao/dca/tl_metamodel_dcasetting.php
+  'Christian de la Haye <service@delahaye.de>':
+    - src/Attribute/TranslatedTags.php
+  'Christian Schiffler <c.schiffler@cyberspectrum.de>':
+    - src/Attribute/AttributeTypeFactory.php
+    - src/Attribute/TranslatedTags.php
+    - src/EventListener/DcGeneral/Table/Attribute/PropertyOptionsListener.php
+    - src/Resources/contao/dca/tl_metamodel_dcasetting.php
+  'David Maack <david.maack@arcor.de>':
+    - src/Attribute/TranslatedTags.php
+  'Stefan Heimes <stefan_heimes@hotmail.com>':
+    - src/Attribute/TranslatedTags.php
+    - src/Resources/contao/dca/tl_metamodel_dcasetting.php
+  'Sven Baumann <baumann.sv@gmail.com>':
+    - src/Attribute/AttributeTypeFactory.php
+    - src/Attribute/TranslatedTags.php
+    - src/Resources/contao/dca/tl_metamodel_dcasetting.php

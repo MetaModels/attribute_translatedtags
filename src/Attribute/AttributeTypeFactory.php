@@ -42,7 +42,7 @@ class AttributeTypeFactory extends AbstractAttributeTypeFactory
     /**
      * Create a new instance.
      *
-     * @param Connection $connection
+     * @param Connection $connection The database connection to use.
      */
     public function __construct(Connection $connection)
     {

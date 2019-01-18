@@ -247,7 +247,6 @@ class TranslatedTags extends Tags implements ITranslated
             $statement
                 ->groupBy('source.' . $this->getIdColumn())
                 ->addOrderBy('source.' . $this->getSortingColumn());
-
         } elseif ($usedOnly) {
             $statement = $this->getConnection()->createQueryBuilder()
                 ->select('COUNT(value_id) AS mm_count')
@@ -285,7 +284,6 @@ class TranslatedTags extends Tags implements ITranslated
             $statement
                 ->groupBy('rel.value_id')
                 ->addOrderBy('source.' . $this->getSortingColumn());
-
         } else {
             $statement = $this->getConnection()->createQueryBuilder()
                 ->select('COUNT(source.' . $this->getIdColumn() . ') AS mm_count')
