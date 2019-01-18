@@ -22,7 +22,6 @@
 namespace MetaModels\AttributeTranslatedTagsBundle\Test\Attribute;
 
 use Doctrine\DBAL\Connection;
-use MetaModels\Attribute\IAttributeTypeFactory;
 use MetaModels\AttributeTranslatedTagsBundle\Attribute\AttributeTypeFactory;
 use MetaModels\AttributeTranslatedTagsBundle\Attribute\TranslatedTags;
 use MetaModels\IMetaModel;
@@ -43,38 +42,25 @@ class TranslatedTagsAttributeTypeFactoryTest extends TestCase
      *
      * @param string $fallbackLanguage The fallback language.
      *
-     * @return IMetaModel
+     * @return \PHPUnit_Framework_MockObject_MockObject|IMetaModel
      */
     protected function mockMetaModel($tableName, $language, $fallbackLanguage)
     {
         $metaModel = $this->getMockBuilder(MetaModel::class)->setMethods([])->setConstructorArgs([[]])->getMock();
 
         $metaModel
-            ->expects($this->any())
             ->method('getTableName')
-            ->will($this->returnValue($tableName));
+            ->willReturn($tableName);
 
         $metaModel
-            ->expects($this->any())
             ->method('getActiveLanguage')
-            ->will($this->returnValue($language));
+            ->willReturn($language);
 
         $metaModel
-            ->expects($this->any())
             ->method('getFallbackLanguage')
-            ->will($this->returnValue($fallbackLanguage));
+            ->willReturn($fallbackLanguage);
 
         return $metaModel;
-    }
-
-    /**
-     * Override the method to run the tests on the attribute factories to be tested.
-     *
-     * @return IAttributeTypeFactory[]
-     */
-    protected function getAttributeFactories()
-    {
-        return [new AttributeTypeFactory($this->mockConnection())];
     }
 
     /**
@@ -84,7 +70,7 @@ class TranslatedTagsAttributeTypeFactoryTest extends TestCase
      */
     private function mockConnection()
     {
-        $connection  = $this->getMockBuilder(Connection::class)
+        $connection = $this->getMockBuilder(Connection::class)
             ->disableOriginalConstructor()
             ->getMock();
 
@@ -99,7 +85,7 @@ class TranslatedTagsAttributeTypeFactoryTest extends TestCase
     public function testCreateTags()
     {
         $factory   = new AttributeTypeFactory($this->mockConnection());
-        $values = [
+        $values    = [
             'tag_table'  => 'tl_page',
             'tag_column' => 'pid',
             'tag_alias'  => 'alias',

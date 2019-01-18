@@ -21,6 +21,7 @@
 
 namespace MetaModels\AttributeTranslatedTagsBundle\Test\Attribute;
 
+use Doctrine\DBAL\Connection;
 use MetaModels\AttributeTranslatedTagsBundle\Attribute\TranslatedTags;
 use MetaModels\IMetaModel;
 use MetaModels\MetaModel;
@@ -37,28 +38,37 @@ class TranslatedTagsTest extends TestCase
      * @param string $language         The language.
      * @param string $fallbackLanguage The fallback language.
      *
-     * @return IMetaModel
+     * @return \PHPUnit_Framework_MockObject_MockObject|IMetaModel
      */
     protected function mockMetaModel($language, $fallbackLanguage)
     {
         $metaModel = $this->getMockBuilder(MetaModel::class)->setMethods([])->setConstructorArgs([[]])->getMock();
 
         $metaModel
-            ->expects($this->any())
             ->method('getTableName')
-            ->will($this->returnValue('mm_unittest'));
+            ->willReturn('mm_unittest');
 
         $metaModel
-            ->expects($this->any())
             ->method('getActiveLanguage')
-            ->will($this->returnValue($language));
+            ->willReturn($language);
 
         $metaModel
-            ->expects($this->any())
             ->method('getFallbackLanguage')
-            ->will($this->returnValue($fallbackLanguage));
+            ->willReturn($fallbackLanguage);
 
         return $metaModel;
+    }
+
+    /**
+     * Mock the database connection.
+     *
+     * @return \PHPUnit_Framework_MockObject_MockObject|Connection
+     */
+    private function mockConnection()
+    {
+        return $this->getMockBuilder(Connection::class)
+            ->disableOriginalConstructor()
+            ->getMock();
     }
 
     /**
@@ -68,7 +78,7 @@ class TranslatedTagsTest extends TestCase
      */
     public function testInstantiation()
     {
-        $text = new TranslatedTags($this->mockMetaModel('en', 'en'));
+        $text = new TranslatedTags($this->mockMetaModel('en', 'en'), [], $this->mockConnection());
         $this->assertInstanceOf(TranslatedTags::class, $text);
     }
 }
