@@ -19,7 +19,7 @@
  * @filesource
  */
 
-namespace MetaModels\AttributeTranslatedTagsBundle\Test\Attribute\TranslatedTags;
+namespace MetaModels\AttributeTranslatedTagsBundle\Test\Attribute;
 
 use MetaModels\AttributeTranslatedTagsBundle\Attribute\TranslatedTags;
 use MetaModels\IMetaModel;
