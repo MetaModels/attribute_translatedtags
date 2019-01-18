@@ -33,20 +33,19 @@
   },
   "require": {
     "php": "^5.6 || ^7.0",
-    "contao/core-bundle": "^4.4",
     "contao-community-alliance/dc-general": "^2.1@dev",
+    "contao/core-bundle": "^4.4",
     "doctrine/dbal": "^2.7",
+    "metamodels/attribute_tags": "^2.1@dev",
     "metamodels/core": "^2.1@dev",
     "symfony/config": "^3.3 || ^4.0",
     "symfony/dependency-injection": "^3.3 || ^4.0",
     "symfony/http-kernel": "^3.3 || ^4.0",
-    "symfony/translation": "^3.3 || ^4.0",
-    "metamodels/attribute_tags": "^2.1@dev"
+    "symfony/translation": "^3.3 || ^4.0"
   },
   "require-dev": {
-    "cyberspectrum/contao-toolbox": "^0.7",
-    "phpcq/all-tasks": "^1.2",
-    "contao/manager-plugin": "^2.1"
+    "contao/manager-plugin": "^2.1",
+    "phpcq/all-tasks": "^1.2"
   },
   "autoload": {
     "psr-4": {
@@ -63,14 +62,6 @@
   },
   "extra": {
     "contao-manager-plugin": "MetaModels\\AttributeTranslatedTagsBundle\\ContaoManager\\Plugin",
-    "contao": {
-      "transifex": {
-        "project": "metamodels",
-        "prefix": "attribute_translatedtags-",
-        "languages_cto": "src/Resourcescontao/languages",
-        "languages_tx": ".tx"
-      }
-    },
     "branch-alias": {
       "dev-master": "2.0.x-dev",
       "dev-feature/contao4": "2.1.x-dev"
@@ -87,5 +78,8 @@
             "type": "vcs",
             "url": "git@gitlab.com:metamodels/attribute_tags.git"
         }
-    ]
+    ],
+  "config": {
+    "sort-packages": true
+  }
 }
