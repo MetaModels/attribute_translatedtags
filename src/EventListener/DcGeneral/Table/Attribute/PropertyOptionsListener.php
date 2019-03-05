@@ -30,8 +30,6 @@ use Symfony\Component\Translation\TranslatorInterface;
 /**
  * Class PropertyOptionsListener
  *
- * @package MetaModels\AttributeTranslatedTagsBundle\EventListener\DcGeneral\Table\Attribute
- *
  * Loads the property options.
  */
 class PropertyOptionsListener

@@ -23,8 +23,6 @@ use Symfony\Component\HttpKernel\Bundle\Bundle;
 
 /**
  * Class MetaModelsAttributeTranslatedTagsBundle
- *
- * @package MetaModels\AttributeTranslatedTagsBundle
  */
 class MetaModelsAttributeTranslatedTagsBundle extends Bundle
 {
