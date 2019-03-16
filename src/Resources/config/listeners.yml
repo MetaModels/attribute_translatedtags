@@ -1,0 +1,23 @@
+services:
+    metamodels.attribute_translatedtags.listeners.propery_options:
+        class: MetaModels\AttributeTranslatedTagsBundle\EventListener\DcGeneral\Table\Attribute\PropertyOptionsListener
+        arguments:
+            - '@metamodels.factory'
+            - '@database_connection'
+            - '@translator'
+        tags:
+            - {
+                  name: kernel.event_listener,
+                  event: 'dc-general.view.contao2backend.get-property-options',
+                  method: getLangColumnNames
+              }
+            - {
+                  name: kernel.event_listener,
+                  event: 'dc-general.view.contao2backend.get-property-options',
+                  method: handleSrcTableNames
+              }
+            - {
+                  name: kernel.event_listener,
+                  event: 'dc-general.view.contao2backend.get-property-options',
+                  method: getSourceColumnNames
+              }

@@ -1,4 +1,5 @@
 <?php
+
 /**
  * This file is part of MetaModels/attribute_translatedtags.
  *
@@ -11,25 +12,26 @@
  *
  * @package    MetaModels/attribute_translatedtags
  * @author     Christian Schiffler <c.schiffler@cyberspectrum.de>
+ * @author     Richard Henkenjohann <richardhenkenjohann@googlemail.com>
  * @author     Sven Baumann <baumann.sv@gmail.com>
  * @copyright  2012-2019 The MetaModels team.
  * @license    https://github.com/MetaModels/attribute_translatedtags/blob/master/LICENSE LGPL-3.0-or-later
  * @filesource
  */
 
-namespace MetaModels\Test\Attribute\TranslatedTags;
+namespace MetaModels\AttributeTranslatedTagsBundle\Test\Attribute;
 
-use MetaModels\Attribute\IAttributeTypeFactory;
-use MetaModels\Attribute\TranslatedTags\AttributeTypeFactory;
+use Doctrine\DBAL\Connection;
+use MetaModels\AttributeTranslatedTagsBundle\Attribute\AttributeTypeFactory;
+use MetaModels\AttributeTranslatedTagsBundle\Attribute\TranslatedTags;
 use MetaModels\IMetaModel;
-use MetaModels\Test\Attribute\AttributeTypeFactoryTest;
 use MetaModels\MetaModel;
-use MetaModels\Attribute\TranslatedTags\TranslatedTags;
+use PHPUnit\Framework\TestCase;
 
 /**
  * Test the attribute factory.
  */
-class TranslatedTagsAttributeTypeFactoryTest extends AttributeTypeFactoryTest
+class TranslatedTagsAttributeTypeFactoryTest extends TestCase
 {
     /**
      * Mock a MetaModel.
@@ -40,38 +42,39 @@ class TranslatedTagsAttributeTypeFactoryTest extends AttributeTypeFactoryTest
      *
      * @param string $fallbackLanguage The fallback language.
      *
-     * @return IMetaModel
+     * @return \PHPUnit_Framework_MockObject_MockObject|IMetaModel
      */
     protected function mockMetaModel($tableName, $language, $fallbackLanguage)
     {
         $metaModel = $this->getMockBuilder(MetaModel::class)->setMethods([])->setConstructorArgs([[]])->getMock();
 
         $metaModel
-            ->expects($this->any())
             ->method('getTableName')
-            ->will($this->returnValue($tableName));
+            ->willReturn($tableName);
 
         $metaModel
-            ->expects($this->any())
             ->method('getActiveLanguage')
-            ->will($this->returnValue($language));
+            ->willReturn($language);
 
         $metaModel
-            ->expects($this->any())
             ->method('getFallbackLanguage')
-            ->will($this->returnValue($fallbackLanguage));
+            ->willReturn($fallbackLanguage);
 
         return $metaModel;
     }
 
     /**
-     * Override the method to run the tests on the attribute factories to be tested.
+     * Mock the database connection.
      *
-     * @return IAttributeTypeFactory[]
+     * @return \PHPUnit_Framework_MockObject_MockObject|Connection
      */
-    protected function getAttributeFactories()
+    private function mockConnection()
     {
-        return [new AttributeTypeFactory()];
+        $connection = $this->getMockBuilder(Connection::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        return $connection;
     }
 
     /**
@@ -81,8 +84,8 @@ class TranslatedTagsAttributeTypeFactoryTest extends AttributeTypeFactoryTest
      */
     public function testCreateTags()
     {
-        $factory   = new AttributeTypeFactory();
-        $values = [
+        $factory   = new AttributeTypeFactory($this->mockConnection());
+        $values    = [
             'tag_table'  => 'tl_page',
             'tag_column' => 'pid',
             'tag_alias'  => 'alias',

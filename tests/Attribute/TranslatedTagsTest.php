@@ -1,4 +1,5 @@
 <?php
+
 /**
  * This file is part of MetaModels/attribute_translatedtags.
  *
@@ -11,15 +12,17 @@
  *
  * @package    MetaModels/attribute_translatedtags
  * @author     Christian Schiffler <c.schiffler@cyberspectrum.de>
+ * @author     Richard Henkenjohann <richardhenkenjohann@googlemail.com>
  * @author     Sven Baumann <baumann.sv@gmail.com>
  * @copyright  2012-2019 The MetaModels team.
  * @license    https://github.com/MetaModels/attribute_translatedtags/blob/master/LICENSE LGPL-3.0-or-later
  * @filesource
  */
 
-namespace MetaModels\Test\Attribute\TranslatedTags;
+namespace MetaModels\AttributeTranslatedTagsBundle\Test\Attribute;
 
-use MetaModels\Attribute\TranslatedTags\TranslatedTags;
+use Doctrine\DBAL\Connection;
+use MetaModels\AttributeTranslatedTagsBundle\Attribute\TranslatedTags;
 use MetaModels\IMetaModel;
 use MetaModels\MetaModel;
 use PHPUnit\Framework\TestCase;
@@ -35,28 +38,37 @@ class TranslatedTagsTest extends TestCase
      * @param string $language         The language.
      * @param string $fallbackLanguage The fallback language.
      *
-     * @return IMetaModel
+     * @return \PHPUnit_Framework_MockObject_MockObject|IMetaModel
      */
     protected function mockMetaModel($language, $fallbackLanguage)
     {
         $metaModel = $this->getMockBuilder(MetaModel::class)->setMethods([])->setConstructorArgs([[]])->getMock();
 
         $metaModel
-            ->expects($this->any())
             ->method('getTableName')
-            ->will($this->returnValue('mm_unittest'));
+            ->willReturn('mm_unittest');
 
         $metaModel
-            ->expects($this->any())
             ->method('getActiveLanguage')
-            ->will($this->returnValue($language));
+            ->willReturn($language);
 
         $metaModel
-            ->expects($this->any())
             ->method('getFallbackLanguage')
-            ->will($this->returnValue($fallbackLanguage));
+            ->willReturn($fallbackLanguage);
 
         return $metaModel;
+    }
+
+    /**
+     * Mock the database connection.
+     *
+     * @return \PHPUnit_Framework_MockObject_MockObject|Connection
+     */
+    private function mockConnection()
+    {
+        return $this->getMockBuilder(Connection::class)
+            ->disableOriginalConstructor()
+            ->getMock();
     }
 
     /**
@@ -66,7 +78,7 @@ class TranslatedTagsTest extends TestCase
      */
     public function testInstantiation()
     {
-        $text = new TranslatedTags($this->mockMetaModel('en', 'en'));
+        $text = new TranslatedTags($this->mockMetaModel('en', 'en'), [], $this->mockConnection());
         $this->assertInstanceOf(TranslatedTags::class, $text);
     }
 }
