@@ -3,7 +3,7 @@
 /**
  * This file is part of MetaModels/attribute_translatedtags.
  *
- * (c) 2012-2019 The MetaModels team.
+ * (c) 2012-2020 The MetaModels team.
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -18,7 +18,8 @@
  * @author     Christian de la Haye <service@delahaye.de>
  * @author     Sven Baumann <baumann.sv@gmail.com>
  * @author     Richard Henkenjohann <richardhenkenjohann@googlemail.com>
- * @copyright  2012-2019 The MetaModels team.
+ * @author     Ingolf Steinhardt <info@e-spin.de>
+ * @copyright  2012-2020 The MetaModels team.
  * @license    https://github.com/MetaModels/attribute_translatedtags/blob/master/LICENSE LGPL-3.0-or-later
  * @filesource
  */
@@ -111,11 +112,11 @@ class TranslatedTags extends Tags implements ITranslated
 
         if ($tableName && $colNameId) {
             $statement = $this->getConnection()->createQueryBuilder()
-                ->select('item_id', 'count(*) as count')
-                ->from('tl_metamodel_tag_relation')
-                ->where('att_id=:att')
-                ->andWhere('item_id IN (:items)')
-                ->groupBy('item_id')
+                ->select('t.item_id', 'count(*) as count')
+                ->from('tl_metamodel_tag_relation', 't')
+                ->where('t.att_id=:att')
+                ->andWhere('t.item_id IN (:items)')
+                ->groupBy('t.item_id')
                 ->setParameter('att', $this->get('id'))
                 ->setParameter('items', $ids, Connection::PARAM_INT_ARRAY)
                 ->execute();
@@ -153,11 +154,11 @@ class TranslatedTags extends Tags implements ITranslated
 
         if (($counter !== null) && !empty($result)) {
             $statement = $this->getConnection()->createQueryBuilder()
-                ->select('value_id', 'COUNT(value_id) as mm_count')
-                ->from('tl_metamodel_tag_relation')
-                ->where('att_id=:att')
-                ->andWhere('value_id IN (:values)')
-                ->groupBy('item_id')
+                ->select('t.value_id', 'COUNT(t.value_id) as mm_count')
+                ->from('tl_metamodel_tag_relation', 't')
+                ->where('t.att_id=:att')
+                ->andWhere('t.value_id IN (:values)')
+                ->groupBy('t.item_id')
                 ->setParameter('att', $this->get('id'))
                 ->setParameter('values', $result, Connection::PARAM_STR_ARRAY)
                 ->execute()
@@ -578,21 +579,21 @@ class TranslatedTags extends Tags implements ITranslated
         }
 
         $builder = $this->getConnection()->createQueryBuilder()
-            ->select('item_id')
-            ->from('tl_metamodel_tag_relation')
+            ->select('t1.item_id')
+            ->from('tl_metamodel_tag_relation', 't1')
             ->where(
                 $queryBuilder->expr()->in(
-                    'value_id',
+                    't1.value_id',
                     $queryBuilder
-                        ->select('DISTINCT ' . $idColName)
-                        ->from($tableName)
-                        ->where($queryBuilder->expr()->like($valueColumn, $pattern))
-                        ->orWhere($queryBuilder->expr()->like($aliasColumn, $pattern))
+                        ->select('DISTINCT ' . 't2' . $idColName)
+                        ->from($tableName, 't2')
+                        ->where($queryBuilder->expr()->like('t2' . $valueColumn, $pattern))
+                        ->orWhere($queryBuilder->expr()->like('t2' . $aliasColumn, $pattern))
                         ->andWhere($queryAndLanguages)
                         ->getSQL()
                 )
             )
-            ->andWhere('att_id=:att')
+            ->andWhere('t1.att_id=:att')
             ->setParameter('att', $this->get('id'));
 
         $filterRule = SimpleQuery::createFromQueryBuilder($builder, 'item_id');
