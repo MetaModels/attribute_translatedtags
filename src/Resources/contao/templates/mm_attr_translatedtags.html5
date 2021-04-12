@@ -1,27 +1,24 @@
-<?php if ($this->raw): ?>
-<ul class="translatedtags <?= $this->additional_class; ?>">
-<?php
-$i=0;
-$last=count($this->raw)-1;
+<?php if (count((array) $this->raw) > 0): ?>
+    <ul class="translatedtags <?= $this->additional_class; ?>">
+        <?php
+        $i    = 0;
+        $last = count($this->raw) - 1;
 
-foreach ($this->raw as $arrTag):
-	$arrClass = [];
-	if($i==0)
-	{
-		$arrClass[] = 'first';
-	}
-	if($i==$last)
-	{
-		$arrClass[] = 'last';
-	}
-	$arrClass[] = ((($i++ % 2)==0) ? 'even' : 'odd');
+        foreach ($this->raw as $arrTag):
+            $arrClass = [];
+            if ($i == 0) {
+                $arrClass[] = 'first';
+            }
+            if ($i == $last) {
+                $arrClass[] = 'last';
+            }
+            $arrClass[] = ((($i++ % 2) == 0) ? 'even' : 'odd');
 
-	if ($this->alias && $arrTag[$this->alias] && !is_numeric($arrTag[$this->alias]))
-	{
-		$arrClass[] = standardize($arrTag[$this->alias]);
-	}
-?>
-<li class="<?= implode(' ', $arrClass); ?>"><?= $arrTag[$this->value]; ?></li>
-<?php endforeach; ?>
-</ul>
+            if ($this->alias && $arrTag[$this->alias] && !is_numeric($arrTag[$this->alias])) {
+                $arrClass[] = standardize($arrTag[$this->alias]);
+            }
+            ?>
+            <li class="<?= implode(' ', $arrClass); ?>"><?= $arrTag[$this->value]; ?></li>
+        <?php endforeach; ?>
+    </ul>
 <?php endif; ?>

@@ -1,12 +1,10 @@
-<?php if (count($this->raw)): ?>
-<?php
+<?php if (count((array)$this->raw) > 0):
 $arrTextFormat = [];
 
 foreach ($this->raw as $arrTag)
 {
-	$arrTextFormat[] = $arrTag[$this->value];
+    $arrTextFormat[] = $arrTag[$this->value];
 }
 
 echo implode(', ', $arrTextFormat);
-?>
-<?php endif; ?>
+endif; ?>
