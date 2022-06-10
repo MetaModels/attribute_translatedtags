@@ -27,7 +27,10 @@
 namespace MetaModels\AttributeTranslatedTagsBundle\Attribute;
 
 use Doctrine\DBAL\Connection;
+use Doctrine\DBAL\Driver\Exception as DbalDriverException;
 use Doctrine\DBAL\Driver\Statement;
+use Doctrine\DBAL\Exception;
+use MetaModels\Attribute\IAliasConverter;
 use MetaModels\Attribute\ITranslated;
 use MetaModels\AttributeTagsBundle\Attribute\Tags;
 use MetaModels\Filter\Rules\SimpleQuery;
@@ -35,7 +38,7 @@ use MetaModels\Filter\Rules\SimpleQuery;
 /**
  * This is the MetaModelAttribute class for handling translated tag attributes.
  */
-class TranslatedTags extends Tags implements ITranslated
+class TranslatedTags extends Tags implements ITranslated, IAliasConverter
 {
     /**
      * Retrieve the name of the language column.
@@ -624,5 +627,78 @@ class TranslatedTags extends Tags implements ITranslated
         }
 
         return $result;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getIdForAlias(string $alias, string $language): ?string
+    {
+        return $this->getSearchedValue($this->getIdColumn(), $this->getAliasColumn(), $language, $alias);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getAliasForId(string $id, string $language): ?string
+    {
+        return $this->getSearchedValue($this->getAliasColumn(), $this->getIdColumn(), $language, $id);
+    }
+
+    /**
+     * Helper function for getting a value for a searched value.
+     *
+     * @param string $returnColumn The column for the return.
+     * @param string $searchColumn The column for the search.
+     * @param string $langcode     The langcode for the search.
+     * @param string $search       The searched value.
+     *
+     * @return string|null
+     */
+    private function getSearchedValue(
+        string $returnColumn,
+        string $searchColumn,
+        string $langcode,
+        string $search
+    ): ?string {
+        if (!$this->isProperlyConfigured()) {
+            return null;
+        }
+
+        $tableName  = $this->getTagSource();
+        $langColumn = $this->getTagLangColumn();
+        $statement  = $this->getConnection()
+            ->createQueryBuilder()
+            ->select('v.' . $returnColumn)
+            ->addSelect('v.' . $langColumn)
+            ->from($tableName, 'v')
+            ->where('v.' . $searchColumn . ' = :search')
+            ->setParameter('search', $search);
+
+        if ($this->getWhereColumn()) {
+            $statement->andWhere('(' . $this->getWhereColumn() . ')');
+        }
+
+        try {
+            $result = $statement->execute();
+            if ($result->rowCount() == 0) {
+                return null;
+            }
+
+            $first   = null;
+            $fitting = null;
+            foreach ($result->fetchAllAssociative() as $row) {
+                if ($row[$langColumn] == $langcode) {
+                    $fitting = $row[$returnColumn];
+                    break;
+                }
+
+                $first = $row[$returnColumn];
+            }
+
+            return $fitting ?? $first;
+        } catch (Exception|DbalDriverException $e) {
+            return null;
+        }
     }
 }
