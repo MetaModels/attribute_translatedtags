@@ -30,9 +30,10 @@ use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Driver\Exception as DbalDriverException;
 use Doctrine\DBAL\Driver\Statement;
 use Doctrine\DBAL\Exception;
+use Doctrine\DBAL\Result;
+use MetaModels\AttributeTagsBundle\Attribute\Tags;
 use MetaModels\Attribute\IAliasConverter;
 use MetaModels\Attribute\ITranslated;
-use MetaModels\AttributeTagsBundle\Attribute\Tags;
 use MetaModels\Filter\Rules\SimpleQuery;
 
 /**
@@ -149,7 +150,7 @@ class TranslatedTags extends Tags implements ITranslated, IAliasConverter
         $aliases     = [];
         $idColumn    = $this->getIdColumn();
         $aliasColumn = $this->getAliasColumn();
-        while ($row = $valueResult->fetchAssociative) {
+        while ($row = $valueResult->fetchAssociative()) {
             $valueId           = $row[$idColumn];
             $aliases[$valueId] = $row[$aliasColumn];
             $result[]          = $valueId;
@@ -410,7 +411,7 @@ class TranslatedTags extends Tags implements ITranslated, IAliasConverter
         // Now for the retrieval, first with the real language.
         $values               = $this->getValues($valueIds, $this->getMetaModel()->getActiveLanguage());
         $arrValueIdsRetrieved = [];
-        while ($row = $values->fetchAssociative) {
+        while ($row = $values->fetchAssociative()) {
             $arrValueIdsRetrieved[]      = $row[$idColName];
             $return[$row[$aliasColName]] = $row[$valueColName];
         }
@@ -421,7 +422,7 @@ class TranslatedTags extends Tags implements ITranslated, IAliasConverter
         if ($valueIds
             && ($this->getMetaModel()->getFallbackLanguage() !== $this->getMetaModel()->getActiveLanguage())) {
             $values = $this->getValues($valueIds, $this->getMetaModel()->getFallbackLanguage());
-            while ($row = $values->fetchAssociative) {
+            while ($row = $values->fetchAssociative()) {
                 $return[$row[$aliasColName]] = $row[$valueColName];
             }
         }
@@ -541,7 +542,7 @@ class TranslatedTags extends Tags implements ITranslated, IAliasConverter
 
         $statement->addOrderBy($sortColumn);
 
-        return $this->convertRows($statement->execute(), $metaModelItemId, $idColName);
+        return $this->convertRows($statement->executeQuery(), $metaModelItemId, $idColName);
     }
 
     /**
@@ -607,16 +608,16 @@ class TranslatedTags extends Tags implements ITranslated, IAliasConverter
     /**
      * Convert the database result to an result array.
      *
-     * @param Statement $dbResult    The database result.
+     * @param Result    $dbResult    The database result.
      * @param string    $idColumn    The id column name.
      * @param string    $valueColumn The value column name.
      *
      * @return array
      */
-    private function convertRows(Statement $dbResult, $idColumn, $valueColumn)
+    private function convertRows(Result $dbResult, $idColumn, $valueColumn)
     {
         $result = [];
-        while ($row = $dbResult->fetchAssociative) {
+        while ($row = $dbResult->fetchAssociative()) {
             if (!isset($result[$row[$idColumn]])) {
                 $result[$row[$idColumn]] = [];
             }
