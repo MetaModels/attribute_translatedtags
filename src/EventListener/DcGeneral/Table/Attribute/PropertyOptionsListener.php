@@ -3,7 +3,7 @@
 /**
  * This file is part of MetaModels/attribute_translatedtags.
  *
- * (c) 2012-2019 The MetaModels team.
+ * (c) 2012-2022 The MetaModels team.
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -14,7 +14,8 @@
  * @author     Christian Schiffler <c.schiffler@cyberspectrum.de>
  * @author     Sven Baumann <baumann.sv@gmail.com>
  * @author     Richard Henkenjohann <richardhenkenjohann@googlemail.com>
- * @copyright  2012-2019 The MetaModels team.
+ * @author     Ingolf Steinhardt <info@e-spin.de>
+ * @copyright  2012-2022 The MetaModels team.
  * @license    https://github.com/MetaModels/attribute_translatedtags/blob/master/LICENSE LGPL-3.0-or-later
  * @filesource
  */
@@ -93,26 +94,24 @@ class PropertyOptionsListener
             $sqlKey       = $this->translator->trans(
                 'tl_metamodel_attribute.tag_column_type.sql',
                 [],
-                'tl_metamodel_attribute'
+                'contao_tl_metamodel_attribute'
             );
             $attributeKey = $this->translator->trans(
                 'tl_metamodel_attribute.tag_column_type.attribute',
                 [],
-                'tl_metamodel_attribute'
+                'contao_tl_metamodel_attribute'
             );
 
             $event->setOptions(
-                [
-                    $sqlKey       => \array_diff_key(
-                        $this->getColumnNamesFrom($table),
-                        \array_flip(\array_keys($attributes))
-                    ),
-                    $attributeKey => $attributes,
-                ]
+                \array_diff_key(
+                    $this->getColumnNamesFrom($table),
+                    \array_flip(\array_keys($attributes))
+                )
             );
 
             return;
         }
+
         $result = $this->getColumnNamesFrom($table);
         if (!empty($result)) {
             \asort($result);
@@ -258,7 +257,7 @@ class PropertyOptionsListener
             $column = $attribute->getColName();
             $type   = $attribute->get('type');
 
-            $result[$column] = \sprintf('%s (%s - %s)', $name, $column, $type);
+            $result[$column] = \sprintf('%s [%s - "%s"]', $name, $type, $column);
         }
 
         return $result;
