@@ -25,8 +25,8 @@ namespace MetaModels\AttributeTranslatedTagsBundle\EventListener\DcGeneral\Table
 use ContaoCommunityAlliance\DcGeneral\Contao\View\Contao2BackendView\Event\GetPropertyOptionsEvent;
 use Doctrine\DBAL\Connection;
 use MetaModels\IFactory;
-use Symfony\Component\Translation\Exception\InvalidArgumentException;
-use Symfony\Component\Translation\TranslatorInterface;
+use Symfony\Contracts\Translation\Exception\InvalidArgumentException;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 /**
  * Class PropertyOptionsListener
@@ -288,11 +288,11 @@ class PropertyOptionsListener
             );
 
             return [
+                $attribute => $attributes,
                 $sql       => \array_diff_key(
                     $this->getColumnNamesFromTable($table),
                     \array_flip(\array_keys($attributes))
-                ),
-                $attribute => $attributes,
+                )
             ];
         }
 
