@@ -122,12 +122,12 @@ class TranslatedTags extends Tags implements ITranslated, IAliasConverter
                 ->groupBy('t.item_id')
                 ->setParameter('att', $this->get('id'))
                 ->setParameter('items', $ids, Connection::PARAM_INT_ARRAY)
-                ->execute();
+                ->executeQuery();
 
-            while ($row = $statement->fetch(\PDO::FETCH_OBJ)) {
-                $itemId = $row->item_id;
+            while ($row = $statement->fetchAssociative()) {
+                $itemId = $row['item_id'];
 
-                $return[$itemId] = (int) $row->count;
+                $return[$itemId] = (int) $row['count'];
             }
         }
 
@@ -149,9 +149,9 @@ class TranslatedTags extends Tags implements ITranslated, IAliasConverter
         $aliases     = [];
         $idColumn    = $this->getIdColumn();
         $aliasColumn = $this->getAliasColumn();
-        while ($row = $valueResult->fetch(\PDO::FETCH_OBJ)) {
-            $valueId           = $row->$idColumn;
-            $aliases[$valueId] = $row->$aliasColumn;
+        while ($row = $valueResult->fetchAssociative) {
+            $valueId           = $row[$idColumn];
+            $aliases[$valueId] = $row[$aliasColumn];
             $result[]          = $valueId;
         }
 
@@ -164,11 +164,11 @@ class TranslatedTags extends Tags implements ITranslated, IAliasConverter
                 ->groupBy('t.item_id')
                 ->setParameter('att', $this->get('id'))
                 ->setParameter('values', $result, Connection::PARAM_STR_ARRAY)
-                ->execute()
-                ->fetch(\PDO::FETCH_OBJ);
+                ->executeQuery()
+                ->fetchAssociative();
 
-            $amount  = $statement->mm_count;
-            $valueId = $statement->value_id;
+            $amount  = $statement['mm_count'];
+            $valueId = $statement['value_id'];
             $alias   = $aliases[$valueId];
 
             $counter[$valueId] = $amount;
@@ -410,9 +410,9 @@ class TranslatedTags extends Tags implements ITranslated, IAliasConverter
         // Now for the retrieval, first with the real language.
         $values               = $this->getValues($valueIds, $this->getMetaModel()->getActiveLanguage());
         $arrValueIdsRetrieved = [];
-        while ($row = $values->fetch(\PDO::FETCH_OBJ)) {
-            $arrValueIdsRetrieved[]      = $row->$idColName;
-            $return[$row->$aliasColName] = $row->$valueColName;
+        while ($row = $values->fetchAssociative) {
+            $arrValueIdsRetrieved[]      = $row[$idColName];
+            $return[$row[$aliasColName]] = $row[$valueColName];
         }
         // Determine missing ids.
         $valueIds = array_diff($valueIds, $arrValueIdsRetrieved);
@@ -421,8 +421,8 @@ class TranslatedTags extends Tags implements ITranslated, IAliasConverter
         if ($valueIds
             && ($this->getMetaModel()->getFallbackLanguage() !== $this->getMetaModel()->getActiveLanguage())) {
             $values = $this->getValues($valueIds, $this->getMetaModel()->getFallbackLanguage());
-            while ($row = $values->fetch(\PDO::FETCH_OBJ)) {
-                $return[$row->$aliasColName] = $row->$valueColName;
+            while ($row = $values->fetchAssociative) {
+                $return[$row[$aliasColName]] = $row[$valueColName];
             }
         }
 
@@ -616,7 +616,7 @@ class TranslatedTags extends Tags implements ITranslated, IAliasConverter
     private function convertRows(Statement $dbResult, $idColumn, $valueColumn)
     {
         $result = [];
-        while ($row = $dbResult->fetch(\PDO::FETCH_ASSOC)) {
+        while ($row = $dbResult->fetchAssociative) {
             if (!isset($result[$row[$idColumn]])) {
                 $result[$row[$idColumn]] = [];
             }
