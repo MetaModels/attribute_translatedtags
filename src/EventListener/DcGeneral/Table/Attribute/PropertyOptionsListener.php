@@ -91,17 +91,6 @@ class PropertyOptionsListener
             $attributes = $this->getAttributeNamesFrom($table);
             \asort($attributes);
 
-            $sqlKey       = $this->translator->trans(
-                'tl_metamodel_attribute.tag_column_type.sql',
-                [],
-                'contao_tl_metamodel_attribute'
-            );
-            $attributeKey = $this->translator->trans(
-                'tl_metamodel_attribute.tag_column_type.attribute',
-                [],
-                'contao_tl_metamodel_attribute'
-            );
-
             $event->setOptions(
                 \array_diff_key(
                     $this->getColumnNamesFrom($table),
