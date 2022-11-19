@@ -3,7 +3,7 @@
 /**
  * This file is part of MetaModels/attribute_translatedtags.
  *
- * (c) 2012-2019 The MetaModels team.
+ * (c) 2012-2022 The MetaModels team.
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -18,7 +18,8 @@
  * @author     Christian de la Haye <service@delahaye.de>
  * @author     Sven Baumann <baumann.sv@gmail.com>
  * @author     Richard Henkenjohann <richardhenkenjohann@googlemail.com>
- * @copyright  2012-2019 The MetaModels team.
+ * @author     Ingolf Steinhardt <info@e-spin.de>
+ * @copyright  2012-2022 The MetaModels team.
  * @license    https://github.com/MetaModels/attribute_translatedtags/blob/master/LICENSE LGPL-3.0-or-later
  * @filesource
  */
@@ -26,7 +27,10 @@
 namespace MetaModels\AttributeTranslatedTagsBundle\Attribute;
 
 use Doctrine\DBAL\Connection;
+use Doctrine\DBAL\Driver\Exception as DbalDriverException;
 use Doctrine\DBAL\Driver\Statement;
+use Doctrine\DBAL\Exception;
+use MetaModels\Attribute\IAliasConverter;
 use MetaModels\Attribute\ITranslated;
 use MetaModels\AttributeTagsBundle\Attribute\Tags;
 use MetaModels\Filter\Rules\SimpleQuery;
@@ -34,7 +38,7 @@ use MetaModels\Filter\Rules\SimpleQuery;
 /**
  * This is the MetaModelAttribute class for handling translated tag attributes.
  */
-class TranslatedTags extends Tags implements ITranslated
+class TranslatedTags extends Tags implements ITranslated, IAliasConverter
 {
     /**
      * Retrieve the name of the language column.
@@ -111,11 +115,11 @@ class TranslatedTags extends Tags implements ITranslated
 
         if ($tableName && $colNameId) {
             $statement = $this->getConnection()->createQueryBuilder()
-                ->select('item_id', 'count(*) as count')
-                ->from('tl_metamodel_tag_relation')
-                ->where('att_id=:att')
-                ->andWhere('item_id IN (:items)')
-                ->groupBy('item_id')
+                ->select('t.item_id', 'count(*) as count')
+                ->from('tl_metamodel_tag_relation', 't')
+                ->where('t.att_id=:att')
+                ->andWhere('t.item_id IN (:items)')
+                ->groupBy('t.item_id')
                 ->setParameter('att', $this->get('id'))
                 ->setParameter('items', $ids, Connection::PARAM_INT_ARRAY)
                 ->execute();
@@ -153,11 +157,11 @@ class TranslatedTags extends Tags implements ITranslated
 
         if (($counter !== null) && !empty($result)) {
             $statement = $this->getConnection()->createQueryBuilder()
-                ->select('value_id', 'COUNT(value_id) as mm_count')
-                ->from('tl_metamodel_tag_relation')
-                ->where('att_id=:att')
-                ->andWhere('value_id IN (:values)')
-                ->groupBy('item_id')
+                ->select('t.value_id', 'COUNT(t.value_id) as mm_count')
+                ->from('tl_metamodel_tag_relation', 't')
+                ->where('t.att_id=:att')
+                ->andWhere('t.value_id IN (:values)')
+                ->groupBy('t.item_id')
                 ->setParameter('att', $this->get('id'))
                 ->setParameter('values', $result, Connection::PARAM_STR_ARRAY)
                 ->execute()
@@ -578,21 +582,21 @@ class TranslatedTags extends Tags implements ITranslated
         }
 
         $builder = $this->getConnection()->createQueryBuilder()
-            ->select('item_id')
-            ->from('tl_metamodel_tag_relation')
+            ->select('t1.item_id')
+            ->from('tl_metamodel_tag_relation', 't1')
             ->where(
                 $queryBuilder->expr()->in(
-                    'value_id',
+                    't1.value_id',
                     $queryBuilder
-                        ->select('DISTINCT ' . $idColName)
-                        ->from($tableName)
-                        ->where($queryBuilder->expr()->like($valueColumn, $pattern))
-                        ->orWhere($queryBuilder->expr()->like($aliasColumn, $pattern))
+                        ->select('DISTINCT t2.' . $idColName)
+                        ->from($tableName, 't2')
+                        ->where($queryBuilder->expr()->like('t2.' . $valueColumn, $pattern))
+                        ->orWhere($queryBuilder->expr()->like('t2.' . $aliasColumn, $pattern))
                         ->andWhere($queryAndLanguages)
                         ->getSQL()
                 )
             )
-            ->andWhere('att_id=:att')
+            ->andWhere('t1.att_id=:att')
             ->setParameter('att', $this->get('id'));
 
         $filterRule = SimpleQuery::createFromQueryBuilder($builder, 'item_id');
@@ -623,5 +627,80 @@ class TranslatedTags extends Tags implements ITranslated
         }
 
         return $result;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getIdForAlias(string $alias, string $language): ?string
+    {
+        return $this->getSearchedValue($this->getIdColumn(), $this->getAliasColumn(), $language, $alias);
+    }
+
+    /**
+     * {@inheritdoc}
+     *
+     * @SuppressWarnings(PHPMD.ShortVariable)
+     */
+    public function getAliasForId(string $id, string $language): ?string
+    {
+        return $this->getSearchedValue($this->getAliasColumn(), $this->getIdColumn(), $language, $id);
+    }
+
+    /**
+     * Helper function for getting a value for a searched value.
+     *
+     * @param string $returnColumn The column for the return.
+     * @param string $searchColumn The column for the search.
+     * @param string $langcode     The langcode for the search.
+     * @param string $search       The searched value.
+     *
+     * @return string|null
+     */
+    private function getSearchedValue(
+        string $returnColumn,
+        string $searchColumn,
+        string $langcode,
+        string $search
+    ): ?string {
+        if (!$this->isProperlyConfigured()) {
+            return null;
+        }
+
+        $tableName  = $this->getTagSource();
+        $langColumn = $this->getTagLangColumn();
+        $statement  = $this->getConnection()
+            ->createQueryBuilder()
+            ->select('v.' . $returnColumn)
+            ->addSelect('v.' . $langColumn)
+            ->from($tableName, 'v')
+            ->where('v.' . $searchColumn . ' = :search')
+            ->setParameter('search', $search);
+
+        if ($this->getWhereColumn()) {
+            $statement->andWhere('(' . $this->getWhereColumn() . ')');
+        }
+
+        try {
+            $result = $statement->execute();
+            if ($result->rowCount() == 0) {
+                return null;
+            }
+
+            $first   = null;
+            $fitting = null;
+            foreach ($result->fetchAllAssociative() as $row) {
+                if ($row[$langColumn] == $langcode) {
+                    $fitting = $row[$returnColumn];
+                    break;
+                }
+
+                $first = $row[$returnColumn];
+            }
+
+            return ($fitting ?? $first);
+        } catch (Exception|DbalDriverException $e) {
+            return null;
+        }
     }
 }
