@@ -659,7 +659,7 @@ class TranslatedTags extends Tags implements ITranslated, IAliasConverter
                 $queryBuilder->expr()->in(
                     't.value_id',
                     $queryBuilder
-                        ->select('DISTINCT ' . 't2.' . $idColName)
+                        ->select('DISTINCT t2.' . $idColName)
                         ->from($tableName, 't2')
                         ->where($queryBuilder->expr()->like('t2.' . $valueColumn, ':patternValue'))
                         ->orWhere($queryBuilder->expr()->like('t2.' . $aliasColumn, ':patternAlias'))
@@ -713,6 +713,8 @@ class TranslatedTags extends Tags implements ITranslated, IAliasConverter
 
     /**
      * {@inheritdoc}
+     *
+     * @SuppressWarnings(PHPMD.ShortVariable)
      */
     public function getAliasForId(string $id, string $language): ?string
     {
@@ -770,7 +772,7 @@ class TranslatedTags extends Tags implements ITranslated, IAliasConverter
                 $first = $row[$returnColumn];
             }
 
-            return $fitting ?? $first;
+            return ($fitting ?? $first);
         } catch (Exception|DbalDriverException $e) {
             return null;
         }

@@ -11,9 +11,12 @@ mapping:
     - 'chibineko <stefan_heimes@hotmail.com>'
     - 'stefanheimes <stefan_heimes@hotmail.com>'
     - 'Stefan Heimes <cms@men-at-work.de>'
+    - 'Stefan Heimes <heimes@men-at-work.de>'
   'David Maack <david.maack@arcor.de>':
     - 'David Maack <maack@men-at-work.de>'
   'Christopher Boelter <christopher@boelter.eu>': 'cboelter <christopher@boelter.eu>'
+  'Ingolf Steinhardt <info@e-spin.de>':
+    - 'zonky <info@e-spin.de>'
 
 copy-left:
   'Andreas Isaak <info@andreas-isaak.de>':
