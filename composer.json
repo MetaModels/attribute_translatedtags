@@ -37,7 +37,7 @@
     "contao/core-bundle": "^4.13.0 <5.0",
     "doctrine/dbal": "^3.3",
     "metamodels/attribute_tags": "^2.3@dev",
-    "metamodels/core": "dev-feature/phpcq-2 as 2.3.0",
+    "metamodels/core": "^2.3@dev",
     "symfony/config": "^5.4",
     "symfony/dependency-injection": "^5.4",
     "symfony/http-kernel": "^5.4",
@@ -48,12 +48,6 @@
     "menatwork/contao-multicolumnwizard-bundle": "^3.4",
     "phpcq/runner-bootstrap": "^1.0@dev"
   },
-  "repositories": [
-    {
-      "type": "composer",
-      "url": "https://packages.cyberspectrum.de/r"
-    }
-  ],
   "autoload": {
     "psr-4": {
       "MetaModels\\AttributeTranslatedTagsBundle\\": "src"
