@@ -3,7 +3,7 @@
 /**
  * This file is part of MetaModels/attribute_translatedtags.
  *
- * (c) 2012-2022 The MetaModels team.
+ * (c) 2012-2024 The MetaModels team.
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -15,7 +15,7 @@
  * @author     Sven Baumann <baumann.sv@gmail.com>
  * @author     Richard Henkenjohann <richardhenkenjohann@googlemail.com>
  * @author     Ingolf Steinhardt <info@e-spin.de>
- * @copyright  2012-2022 The MetaModels team.
+ * @copyright  2012-2024 The MetaModels team.
  * @license    https://github.com/MetaModels/attribute_translatedtags/blob/master/LICENSE LGPL-3.0-or-later
  * @filesource
  */
@@ -23,9 +23,10 @@
 namespace MetaModels\AttributeTranslatedTagsBundle\EventListener\DcGeneral\Table\Attribute;
 
 use ContaoCommunityAlliance\DcGeneral\Contao\View\Contao2BackendView\Event\GetPropertyOptionsEvent;
+use ContaoCommunityAlliance\DcGeneral\DataDefinition\ContainerInterface;
 use Doctrine\DBAL\Connection;
 use MetaModels\IFactory;
-use Symfony\Contracts\Translation\Exception\InvalidArgumentException;
+use Symfony\Component\Translation\Exception\InvalidArgumentException;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
 /**
@@ -35,27 +36,26 @@ use Symfony\Contracts\Translation\TranslatorInterface;
  */
 class PropertyOptionsListener
 {
-
     /**
      * MetaModels factory.
      *
      * @var IFactory
      */
-    private $factory;
+    private IFactory $factory;
 
     /**
      * Database connection.
      *
      * @var Connection
      */
-    private $connection;
+    private Connection $connection;
 
     /**
      * Translator.
      *
      * @var TranslatorInterface
      */
-    private $translator;
+    private TranslatorInterface $translator;
 
     /**
      * PropertyOptionsListener constructor.
@@ -80,14 +80,18 @@ class PropertyOptionsListener
      */
     public function getLangColumnNames(GetPropertyOptionsEvent $event)
     {
-        if (($event->getPropertyName() !== 'tag_langcolumn')
-            || ('tl_metamodel_attribute' !== $event->getEnvironment()->getDataDefinition()->getName())
+        $dataDefinition = $event->getEnvironment()->getDataDefinition();
+        assert($dataDefinition instanceof ContainerInterface);
+
+        if (
+            ($event->getPropertyName() !== 'tag_langcolumn')
+            || ('tl_metamodel_attribute' !== $dataDefinition->getName())
         ) {
             return;
         }
 
         $table = $event->getModel()->getProperty('tag_table');
-        if (0 === \strpos($table, 'mm_')) {
+        if (\str_starts_with($table, 'mm_')) {
             $attributes = $this->getAttributeNamesFrom($table);
             \asort($attributes);
 
@@ -119,8 +123,13 @@ class PropertyOptionsListener
      */
     public function handleSrcTableNames(GetPropertyOptionsEvent $event)
     {
-        if (($event->getPropertyName() !== 'tag_srctable')
-            || ($event->getEnvironment()->getDataDefinition()->getName() !== 'tl_metamodel_attribute')) {
+        $dataDefinition = $event->getEnvironment()->getDataDefinition();
+        assert($dataDefinition instanceof ContainerInterface);
+
+        if (
+            ($event->getPropertyName() !== 'tag_srctable')
+            || ($dataDefinition->getName() !== 'tl_metamodel_attribute')
+        ) {
             return;
         }
 
@@ -141,8 +150,8 @@ class PropertyOptionsListener
         );
 
         $result = $this->getMetaModelTableNames($translated, $untranslated);
-        foreach ($this->connection->getSchemaManager()->listTableNames() as $table) {
-            if (0 !== \strpos($table, 'mm_')) {
+        foreach ($this->connection->createSchemaManager()->listTableNames() as $table) {
+            if (!\str_starts_with($table, 'mm_')) {
                 $result[$sqlTable][$table] = $table;
             }
         }
@@ -171,22 +180,27 @@ class PropertyOptionsListener
      */
     public function getSourceColumnNames(GetPropertyOptionsEvent $event)
     {
-        if (($event->getPropertyName() !== 'tag_srcsorting')
-            || ($event->getEnvironment()->getDataDefinition()->getName() !== 'tl_metamodel_attribute')) {
+        $dataDefinition = $event->getEnvironment()->getDataDefinition();
+        assert($dataDefinition instanceof ContainerInterface);
+
+        if (
+            ($event->getPropertyName() !== 'tag_srcsorting')
+            || ($dataDefinition->getName() !== 'tl_metamodel_attribute')
+        ) {
             return;
         }
 
         $model = $event->getModel();
         $table = $model->getProperty('select_srctable');
 
-        if (!$table || !$this->connection->getSchemaManager()->tablesExist([$table])) {
+        if (!$table || !$this->connection->createSchemaManager()->tablesExist([$table])) {
             return;
         }
 
         $result = [];
 
-        $indexes = $this->connection->getSchemaManager()->listTableIndexes($table);
-        foreach ($this->connection->getSchemaManager()->listTableColumns($table) as $column) {
+        $indexes = $this->connection->createSchemaManager()->listTableIndexes($table);
+        foreach ($this->connection->createSchemaManager()->listTableColumns($table) as $column) {
             if (\array_key_exists($column->getName(), $indexes)) {
                 continue;
             }
@@ -202,7 +216,6 @@ class PropertyOptionsListener
      * Retrieve all MetaModels table names.
      *
      * @param string $keyTranslated   The array key to use for translated MetaModels.
-     *
      * @param string $keyUntranslated The array key to use for untranslated MetaModels.
      *
      * @return array
@@ -216,6 +229,7 @@ class PropertyOptionsListener
                 continue;
             }
 
+            /** @psalm-suppress DeprecatedMethod */
             if ($metaModel->isTranslated()) {
                 $result[$keyTranslated][$table] = \sprintf('%s (%s)', $metaModel->get('name'), $table);
             } else {
@@ -261,7 +275,7 @@ class PropertyOptionsListener
      */
     private function getColumnNamesFrom($table)
     {
-        if (0 === \strpos($table, 'mm_')) {
+        if (\str_starts_with($table, 'mm_')) {
             $attributes = $this->getAttributeNamesFrom($table);
             \asort($attributes);
 
@@ -292,19 +306,19 @@ class PropertyOptionsListener
      * Retrieve all columns from a database table.
      *
      * @param string     $tableName  The database table name.
-     *
      * @param array|null $typeFilter Optional of types to filter for.
      *
      * @return string[]
      */
     private function getColumnNamesFromTable($tableName, $typeFilter = null)
     {
-        if (!$this->connection->getSchemaManager()->tablesExist([$tableName])) {
+        if (!$this->connection->createSchemaManager()->tablesExist([$tableName])) {
             return [];
         }
 
         $result = [];
-        foreach ($this->connection->getSchemaManager()->listTableColumns($tableName) as $column) {
+        foreach ($this->connection->createSchemaManager()->listTableColumns($tableName) as $column) {
+            /** @psalm-suppress DeprecatedMethod */
             if (($typeFilter === null) || \in_array($column->getType()->getName(), $typeFilter, true)) {
                 $result[$column->getName()] = $column->getName();
             }

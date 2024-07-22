@@ -3,7 +3,7 @@
 /**
  * This file is part of MetaModels/attribute_translatedtags.
  *
- * (c) 2012-2022 The MetaModels team.
+ * (c) 2012-2024 The MetaModels team.
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -19,32 +19,46 @@
  * @author     Sven Baumann <baumann.sv@gmail.com>
  * @author     Richard Henkenjohann <richardhenkenjohann@googlemail.com>
  * @author     Ingolf Steinhardt <info@e-spin.de>
- * @copyright  2012-2022 The MetaModels team.
+ * @copyright  2012-2024 The MetaModels team.
  * @license    https://github.com/MetaModels/attribute_translatedtags/blob/master/LICENSE LGPL-3.0-or-later
  * @filesource
  */
 
 namespace MetaModels\AttributeTranslatedTagsBundle\Attribute;
 
-use Doctrine\DBAL\Connection;
+use Doctrine\DBAL\ArrayParameterType;
 use Doctrine\DBAL\Driver\Exception as DbalDriverException;
-use Doctrine\DBAL\Driver\Statement;
 use Doctrine\DBAL\Exception;
+use Doctrine\DBAL\Query\QueryBuilder;
 use Doctrine\DBAL\Result;
+use LogicException;
 use MetaModels\AttributeTagsBundle\Attribute\Tags;
 use MetaModels\Attribute\IAliasConverter;
 use MetaModels\Attribute\ITranslated;
 use MetaModels\Filter\Rules\SimpleQuery;
+use MetaModels\ITranslatedMetaModel;
+use RuntimeException;
+
+use function array_diff;
+use function array_keys;
+use function array_merge;
+use function array_values;
+use function assert;
+use function count;
+use function is_string;
+use function sprintf;
 
 /**
  * This is the MetaModelAttribute class for handling translated tag attributes.
+ *
+ * @SuppressWarnings(PHPMD.ExcessiveClassComplexity)
  */
 class TranslatedTags extends Tags implements ITranslated, IAliasConverter
 {
     /**
      * Retrieve the name of the language column.
      *
-     * @return string
+     * @return string|null
      */
     protected function getTagLangColumn()
     {
@@ -54,7 +68,7 @@ class TranslatedTags extends Tags implements ITranslated, IAliasConverter
     /**
      * Retrieve the sorting source table.
      *
-     * @return string
+     * @return string|null
      */
     protected function getTagSortSourceTable()
     {
@@ -64,9 +78,9 @@ class TranslatedTags extends Tags implements ITranslated, IAliasConverter
     /**
      * Retrieve the sorting source column.
      *
-     * @param string $prefix The prefix (e.g. table name) for a return value like "<table>.<column>".
+     * @param string|null $prefix The prefix (e.g. table name) for a return value like "<table>.<column>".
      *
-     * @return string
+     * @return string|null
      */
     protected function getTagSortSourceColumn($prefix = null)
     {
@@ -92,9 +106,11 @@ class TranslatedTags extends Tags implements ITranslated, IAliasConverter
             return false;
         }
 
-        // If sort table given and non existent, exit.
-        if (null !== ($sortTable = $this->getTagSortSourceTable())
-            && !$this->getConnection()->getSchemaManager()->tablesExist([$sortTable])) {
+        // If sort table given and non-existent, exit.
+        if (
+            null !== ($sortTable = $this->getTagSortSourceTable())
+            && !$this->getConnection()->createSchemaManager()->tablesExist([$sortTable])
+        ) {
             return false;
         }
 
@@ -104,9 +120,9 @@ class TranslatedTags extends Tags implements ITranslated, IAliasConverter
     /**
      * Determine the amount of entries in the relation table for this attribute and the given value ids.
      *
-     * @param int[] $ids The ids of the items for which the tag count shall be determined.
+     * @param list<string> $ids The ids of the items for which the tag count shall be determined.
      *
-     * @return int[] The counts in the array format 'item_id' => count
+     * @return array<string, int> The counts in the array format 'item_id' => count
      */
     public function getTagCount($ids)
     {
@@ -116,13 +132,13 @@ class TranslatedTags extends Tags implements ITranslated, IAliasConverter
 
         if ($tableName && $colNameId) {
             $statement = $this->getConnection()->createQueryBuilder()
-                ->select('t.item_id', 'count(*) as count')
+                ->select('t.item_id, count(*) as count')
                 ->from('tl_metamodel_tag_relation', 't')
                 ->where('t.att_id=:att')
                 ->andWhere('t.item_id IN (:items)')
                 ->groupBy('t.item_id')
                 ->setParameter('att', $this->get('id'))
-                ->setParameter('items', $ids, Connection::PARAM_INT_ARRAY)
+                ->setParameter('items', $ids, ArrayParameterType::INTEGER)
                 ->executeQuery();
 
             while ($row = $statement->fetchAssociative()) {
@@ -138,10 +154,10 @@ class TranslatedTags extends Tags implements ITranslated, IAliasConverter
     /**
      * Convert the value ids to a result array.
      *
-     * @param Statement  $valueResult The database result.
-     * @param null|array $counter     The destination for the counter values.
+     * @param Result                  $valueResult The database result.
+     * @param null|array<string, int> $counter     The destination for the counter values.
      *
-     * @return int[] The value ids that are represented by the passed database statement.
+     * @return list<string> The value ids that are represented by the passed database statement.
      */
     protected function convertValueIds($valueResult, &$counter = null)
     {
@@ -157,22 +173,25 @@ class TranslatedTags extends Tags implements ITranslated, IAliasConverter
 
         if (($counter !== null) && !empty($result)) {
             $statement = $this->getConnection()->createQueryBuilder()
-                ->select('t.value_id', 'COUNT(t.value_id) as mm_count')
+                ->select('t.value_id, COUNT(t.value_id) as mm_count')
                 ->from('tl_metamodel_tag_relation', 't')
                 ->where('t.att_id=:att')
                 ->andWhere('t.value_id IN (:values)')
                 ->groupBy('t.item_id')
                 ->setParameter('att', $this->get('id'))
-                ->setParameter('values', $result, Connection::PARAM_STR_ARRAY)
+                ->setParameter('values', $result, ArrayParameterType::STRING)
                 ->executeQuery()
                 ->fetchAssociative();
+            if (false === $statement) {
+                throw new RuntimeException('Query failed.');
+            }
 
-            $amount  = $statement['mm_count'];
+            $amount  = (int) $statement['mm_count'];
             $valueId = $statement['value_id'];
             $alias   = $aliases[$valueId];
 
-            $counter[$valueId] = $amount;
-            $counter[$alias]   = $amount;
+            $counter[(string) $valueId] = $amount;
+            $counter[(string) $alias]   = $amount;
         }
 
         return $result;
@@ -185,12 +204,12 @@ class TranslatedTags extends Tags implements ITranslated, IAliasConverter
      * fallback languages into account.
      * This method is mainly intended as a helper for TranslatedTags::getFilterOptions().
      *
-     * @param string[]|null $ids      A list of item ids that the result shall be limited to.
-     * @param bool          $usedOnly Do only return ids that have matches in the real table.
-     * @param null          $count    Array to where the amount of items per tag shall be stored. May be null to return
-     *                                nothing.
+     * @param list<string>|null           $ids      A list of item ids that the result shall be limited to.
+     * @param bool                    $usedOnly Do only return ids that have matches in the real table.
+     * @param null|array<string, int> $count    Array to where the amount of items per tag shall be stored. May be null
+     *                                          to return nothing.
      *
-     * @return int[] a list of all matching value ids.
+     * @return list<string> a list of all matching value ids.
      *
      * @see TranslatedTags::getFilterOptions().
      *
@@ -206,7 +225,6 @@ class TranslatedTags extends Tags implements ITranslated, IAliasConverter
 
         $tableName   = $this->getTagSource();
         $idColumn    = $this->getIdColumn();
-        $langColumn  = $this->getTagLangColumn();
         $sortColumn  = $this->getSortingColumn();
         $aliasColumn = $this->getAliasColumn();
 
@@ -214,6 +232,7 @@ class TranslatedTags extends Tags implements ITranslated, IAliasConverter
         $queryBuilder = $this->getConnection()->createQueryBuilder();
 
         if (null !== $ids) {
+            $expr = $queryBuilder->expr();
             $statement = $this->getConnection()->createQueryBuilder()
                 ->select('COUNT(t.' . $idColumn . ') AS mm_count')
                 ->addSelect('t.' . $idColumn)
@@ -223,31 +242,16 @@ class TranslatedTags extends Tags implements ITranslated, IAliasConverter
                     't',
                     'tl_metamodel_tag_relation',
                     'rel',
-                    $queryBuilder->expr()->andX()->add('rel.att_id=:att')->add(
-                        'rel.value_id=t.' . $idColumn
-                    )
+                    (string) $expr->and($expr->eq('rel.att_id', ':att'), $expr->eq('rel.value_id', 't.' . $idColumn))
                 )
                 ->where('rel.item_id IN (:items)')
                 ->setParameter('att', $this->get('id'))
-                ->setParameter('items', $ids, Connection::PARAM_STR_ARRAY);
+                ->setParameter('items', $ids, ArrayParameterType::STRING);
 
-            if ($this->getTagSortSourceTable()) {
-                $statement
-                    ->addSelect($this->getTagSortSourceTable() . '.*')
-                    ->join(
-                        't',
-                        $this->getTagSortSourceTable(),
-                        'sort',
-                        't.' . $idColumn . '=sort.id'
-                    );
+            $this->sortTagSourceBySortingColumn($statement, $idColumn, 't');
 
-                if ($this->getTagSortSourceColumn()) {
-                    $statement->orderBy($this->getTagSortSourceColumn('sort'));
-                }
-            }
-
-            if ($this->getWhereColumn()) {
-                $statement->andWhere('(' . $this->getWhereColumn() . ')');
+            if ('' !== ($whereColumn = $this->getWhereColumn() ?? '')) {
+                $statement->andWhere('(' . $whereColumn . ')');
             }
 
             $statement
@@ -268,23 +272,10 @@ class TranslatedTags extends Tags implements ITranslated, IAliasConverter
                 ->where('rel.att_id=:att')
                 ->setParameter('att', $this->get('id'));
 
-            if ($this->getTagSortSourceTable()) {
-                $statement
-                    ->addSelect($this->getTagSortSourceTable() . '.*')
-                    ->join(
-                        't',
-                        $this->getTagSortSourceTable(),
-                        'sort',
-                        't.' . $idColumn . '=sort.id'
-                    );
+            $this->sortTagSourceBySortingColumn($statement, $idColumn, 't');
 
-                if ($this->getTagSortSourceColumn()) {
-                    $statement->orderBy($this->getTagSortSourceColumn('sort'));
-                }
-            }
-
-            if ($this->getWhereColumn()) {
-                $statement->andWhere('(' . $this->getWhereColumn() . ')');
+            if ('' !== ($whereColumn = $this->getWhereColumn() ?? '')) {
+                $statement->andWhere('(' . $whereColumn . ')');
             }
 
             $statement
@@ -297,24 +288,10 @@ class TranslatedTags extends Tags implements ITranslated, IAliasConverter
                 ->addSelect('t.' . $aliasColumn)
                 ->from($tableName, 't');
 
-            if ($this->getTagSortSourceTable()) {
-                $statement
-                    ->addSelect($this->getTagSortSourceTable() . '.*')
-                    ->join(
-                        't',
-                        $this->getTagSortSourceTable(),
-                        'sort',
-                        't.' . $idColumn
-                        . '=sort.id'
-                    );
+            $this->sortTagSourceBySortingColumn($statement, $idColumn, 't');
 
-                if ($this->getTagSortSourceColumn()) {
-                    $statement->orderBy($this->getTagSortSourceColumn('sort'));
-                }
-            }
-
-            if ($this->getWhereColumn()) {
-                $statement->where('(' . $this->getWhereColumn() . ')');
+            if ('' !== ($whereColumn = $this->getWhereColumn() ?? '')) {
+                $statement->andWhere('(' . $whereColumn . ')');
             }
 
             $statement
@@ -322,7 +299,7 @@ class TranslatedTags extends Tags implements ITranslated, IAliasConverter
                 ->addOrderBy($sortColumn);
         }
 
-        return $this->convertValueIds($statement->execute(), $count);
+        return $this->convertValueIds($statement->executeQuery(), $count);
     }
 
     /**
@@ -331,46 +308,35 @@ class TranslatedTags extends Tags implements ITranslated, IAliasConverter
      * This method is mainly intended as a helper for
      * {@see MetaModelAttributeTranslatedTags::getFilterOptions()}
      *
-     * @param int[]  $valueIds A list of value ids that the result shall be limited to.
-     * @param string $language The language code for which the values shall be retrieved.
+     * @param list<string> $valueIds A list of value ids that the result shall be limited to.
+     * @param string       $language The language code for which the values shall be retrieved.
      *
-     * @return Statement The database result containing all matching values.
+     * @return Result The database result containing all matching values.
      */
     protected function getValues($valueIds, $language)
     {
         $queryBuilder = $this->getConnection()->createQueryBuilder();
-        $where        = $this->getWhereColumn()
-            ? '(' . $this->getWhereColumn() . ')'
-            : null;
+        $expr = $queryBuilder->expr();
+        $idColumn   = $this->getIdColumn();
+        $langColumn = $this->getTagLangColumn();
+        assert(is_string($langColumn));
 
+        $where = $expr->and($expr->eq('source.' . $langColumn, ':lang'));
+        if ('' !== ($whereColumn = $this->getWhereColumn() ?? '')) {
+            $where = $where->with('(' . $whereColumn . ')');
+        }
         $statement = $this->getConnection()->createQueryBuilder()
             ->select('source.*')
             ->from($this->getTagSource(), 'source')
-            ->where($queryBuilder->expr()->in('source.' . $this->getIdColumn(), $valueIds))
-            ->andWhere(
-                $queryBuilder->expr()->andX()->add('source.' . $this->getTagLangColumn() . '=:lang')->add($where)
-            )
+            ->where($expr->in('source.' . $idColumn, $valueIds))
+            ->andWhere($where)
             ->setParameter('lang', $language)
-            ->groupBy('source.' . $this->getIdColumn());
+            ->groupBy('source.' . $idColumn);
 
-
-        if ($this->getTagSortSourceTable()) {
-            $statement->addSelect($this->getTagSortSourceTable() . '.*');
-            $statement->join(
-                's',
-                $this->getTagSortSourceTable(),
-                'sort',
-                $queryBuilder->expr()->eq('source.' . $this->getIdColumn(), 'sort.id')
-            );
-
-            if ($this->getTagSortSourceColumn()) {
-                $statement->orderBy($this->getTagSortSourceColumn('sort'));
-            }
-        }
-
+        $this->sortTagSourceBySortingColumn($statement, $idColumn, 'source');
         $statement->addOrderBy('source.' . $this->getSortingColumn());
 
-        return $statement->execute();
+        return $statement->executeQuery();
     }
 
     /**
@@ -378,7 +344,7 @@ class TranslatedTags extends Tags implements ITranslated, IAliasConverter
      */
     public function getAttributeSettingNames()
     {
-        return \array_merge(
+        return array_merge(
             parent::getAttributeSettingNames(),
             [
                 'tag_langcolumn',
@@ -400,28 +366,27 @@ class TranslatedTags extends Tags implements ITranslated, IAliasConverter
         $tableName   = $this->getTagSource();
         $idColumn    = $this->getIdColumn();
         $aliasColumn = $this->getAliasColumn();
-        $valueColumn = $this->getValueColumn();
         $langColumn  = $this->getTagLangColumn();
-        $sortColumn  = $this->getSortingColumn();
         $result      = [];
+        assert(is_string($langColumn));
 
         $builder = $this->getConnection()->createQueryBuilder()
-            ->select(\sprintf('IFNULL (j.%1$s, t.%1$s) as %1$s', $aliasColumn))
+            ->select(sprintf('IFNULL (j.%1$s, t.%1$s) as %1$s', $aliasColumn))
             ->from($tableName, 't')
             ->leftJoin(
                 't',
                 $tableName,
                 'j',
-                \sprintf('t.%1$s = j.%1$s AND j.%2$s = :activeLanguage', $idColumn, $langColumn)
+                sprintf('t.%1$s = j.%1$s AND j.%2$s = :activeLanguage', $idColumn, $langColumn)
             )
-            ->setParameter('activeLanguage', $this->getMetaModel()->getActiveLanguage())
+            ->setParameter('activeLanguage', $this->getCurrentLanguage())
             ->where('t.' . $langColumn . ' = :fallbackLanguage')
             ->where('t.' . $idColumn . ' IN (:ids)')
-            ->setParameter('fallbackLanguage', $this->getMetaModel()->getFallbackLanguage())
-            ->setParameter('ids', \array_keys($varValue), Connection::PARAM_STR_ARRAY)
+            ->setParameter('fallbackLanguage', $this->getMainLanguage())
+            ->setParameter('ids', array_keys($varValue), ArrayParameterType::STRING)
             ->groupBy('alias');
 
-        if (false === ($results = $builder->executeQuery()->fetchAllAssociative())) {
+        if ([] === ($results = $builder->executeQuery()->fetchAllAssociative())) {
             return null;
         }
 
@@ -454,27 +419,30 @@ class TranslatedTags extends Tags implements ITranslated, IAliasConverter
 
         // Fetch the value ids.
         $valueIds = $this->getValueIds($idList, $usedOnly, $arrCount);
-        if (!\count($valueIds)) {
+        if (!count($valueIds)) {
             return $return;
         }
 
         $valueColName = $this->getValueColumn();
         $aliasColName = $this->getAliasColumn();
 
+        $currentLanguage = $this->getCurrentLanguage();
         // Now for the retrieval, first with the real language.
-        $values               = $this->getValues($valueIds, $this->getMetaModel()->getActiveLanguage());
+        $values               = $this->getValues($valueIds, $currentLanguage);
         $arrValueIdsRetrieved = [];
         while ($row = $values->fetchAssociative()) {
             $arrValueIdsRetrieved[]      = $row[$idColName];
             $return[$row[$aliasColName]] = $row[$valueColName];
         }
         // Determine missing ids.
-        $valueIds = array_diff($valueIds, $arrValueIdsRetrieved);
+        $valueIds = array_values(array_diff($valueIds, $arrValueIdsRetrieved));
         // If there are missing ids and the fallback language is different than the current language, then fetch
         // those now.
-        if ($valueIds
-            && ($this->getMetaModel()->getFallbackLanguage() !== $this->getMetaModel()->getActiveLanguage())) {
-            $values = $this->getValues($valueIds, $this->getMetaModel()->getFallbackLanguage());
+        if (
+            $valueIds
+            && (($mainLanguage = $this->getMainLanguage()) !== $currentLanguage)
+        ) {
+            $values = $this->getValues($valueIds, $mainLanguage);
             while ($row = $values->fetchAssociative()) {
                 $return[$row[$aliasColName]] = $row[$valueColName];
             }
@@ -488,8 +456,8 @@ class TranslatedTags extends Tags implements ITranslated, IAliasConverter
      */
     public function getDataFor($arrIds)
     {
-        $activeLanguage   = $this->getMetaModel()->getActiveLanguage();
-        $fallbackLanguage = $this->getMetaModel()->getFallbackLanguage();
+        $activeLanguage = $this->getCurrentLanguage();
+        $fallbackLanguage = $this->getMainLanguage();
 
         $return   = $this->getTranslatedDataFor($arrIds, $activeLanguage);
         $tagCount = $this->getTagCount($arrIds);
@@ -497,18 +465,18 @@ class TranslatedTags extends Tags implements ITranslated, IAliasConverter
         // Check if we got all tags.
         foreach ($return as $key => $results) {
             // Remove matching tags.
-            if (\count($results) === $tagCount[$key]) {
+            if (count($results) === $tagCount[$key]) {
                 unset($tagCount[$key]);
             }
         }
 
-        $arrFallbackIds = \array_keys($tagCount);
+        $arrFallbackIds = array_keys($tagCount);
 
         // Second round, fetch fallback languages if not all items could be resolved.
-        if (($activeLanguage !== $fallbackLanguage) && (\count($arrFallbackIds) > 0)) {
+        if (($activeLanguage !== $fallbackLanguage) && (count($arrFallbackIds) > 0)) {
             // Cannot use array_merge here as it would renumber the keys.
             foreach ($this->getTranslatedDataFor($arrFallbackIds, $fallbackLanguage) as $id => $transValue) {
-                foreach ((array) $transValue as $transId => $value) {
+                foreach ($transValue as $transId => $value) {
                     if (!$return[$id][$transId]) {
                         $return[$id][$transId] = $value;
                     }
@@ -524,7 +492,7 @@ class TranslatedTags extends Tags implements ITranslated, IAliasConverter
      */
     public function searchFor($strPattern)
     {
-        return $this->searchForInLanguages($strPattern, [$this->getMetaModel()->getActiveLanguage()]);
+        return $this->searchForInLanguages($strPattern, [$this->getCurrentLanguage()]);
     }
 
     /**
@@ -549,6 +517,7 @@ class TranslatedTags extends Tags implements ITranslated, IAliasConverter
         $idColumn   = $this->getIdColumn();
         $langColumn = $this->getTagLangColumn();
         $sortColumn = $this->getSortingColumn();
+        assert(is_string($langColumn));
 
         if (!$this->isProperlyConfigured()) {
             return [];
@@ -564,7 +533,11 @@ class TranslatedTags extends Tags implements ITranslated, IAliasConverter
             ->setMaxResults(1)
             ->executeQuery()
             ->fetchAssociative();
+        if (false === $sourceCols) {
+            $sourceCols = [];
+        }
 
+        $expr = $queryBuilder->expr();
         $statement = $this->getConnection()->createQueryBuilder()
             ->select('r.item_id AS ' . $metaModelItemId)
             ->from($tableName, 't')
@@ -572,43 +545,32 @@ class TranslatedTags extends Tags implements ITranslated, IAliasConverter
                 't',
                 'tl_metamodel_tag_relation',
                 'r',
-                $queryBuilder->expr()->andX()
-                    ->add('r.att_id=:att')
-                    ->add('r.value_id=t.' . $idColumn)
-                    ->add('t.' . $langColumn . '=:langcode')
+                (string) $expr->and(
+                    $expr->eq('r.att_id', ':att'),
+                    $expr->eq('r.value_id', 't.' . $idColumn),
+                    $expr->eq('t.' . $langColumn, ':langcode')
+                )
             )
             ->leftJoin(
                 't',
                 $tableName,
                 'j',
-                \sprintf('t.%1$s = j.%1$s AND j.%2$s = :activeLanguage', $idColumn, $langColumn)
+                sprintf('t.%1$s = j.%1$s AND j.%2$s = :activeLanguage', $idColumn, $langColumn)
             )
             ->where('r.item_id IN (:ids)')
             ->setParameter('att', $this->get('id'))
-            ->setParameter('ids', $arrIds, Connection::PARAM_STR_ARRAY)
-            ->setParameter('langcode', $this->getMetaModel()->getFallbackLanguage())
+            ->setParameter('ids', $arrIds, ArrayParameterType::STRING)
+            ->setParameter('langcode', $this->getMainLanguage())
             ->setParameter('activeLanguage', $strLangCode);
 
-        foreach (\array_keys($sourceCols) as $sourceCol) {
-            $statement->addSelect(\sprintf('IFNULL(j.%1$s, t.%1$s) as %1$s', $sourceCol));
+        foreach (array_keys($sourceCols) as $sourceCol) {
+            $statement->addSelect(sprintf('IFNULL(j.%1$s, t.%1$s) as %1$s', $sourceCol));
         }
 
-        if ($this->getTagSortSourceTable()) {
-            $statement->join(
-                't',
-                $this->getTagSortSourceTable(),
-                's',
-                $queryBuilder->expr()->eq('t.' . $idColumn, 's.id')
-            );
+        $this->sortTagSourceBySortingColumn($statement, $idColumn, 't');
 
-            if ($this->getTagSortSourceColumn()) {
-                $statement->addSelect($this->getTagSortSourceColumn('s'));
-                $statement->orderBy('srcsorting');
-            }
-        }
-
-        if ($this->getWhereColumn()) {
-            $statement->andWhere('(' . $this->getWhereColumn() . ')');
+        if ('' !== ($whereColumn = $this->getWhereColumn() ?? '')) {
+            $statement->andWhere('(' . $whereColumn . ')');
         }
 
         $statement->addOrderBy($sortColumn);
@@ -619,12 +581,12 @@ class TranslatedTags extends Tags implements ITranslated, IAliasConverter
     /**
      * Remove values for items in a certain language.
      *
-     * @param string[] $arrIds      The ids for which values shall be removed.
+     * @param list<string> $arrIds  The ids for which values shall be removed.
      * @param string   $strLangCode The language code for which the data shall be removed.
      *
      * @return void
      *
-     * @throws \RuntimeException When an invalid id array has been passed.
+     * @throws RuntimeException When an invalid id array has been passed.
      *
      * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
@@ -637,7 +599,7 @@ class TranslatedTags extends Tags implements ITranslated, IAliasConverter
     /**
      * {@inheritdoc}
      */
-    public function searchForInLanguages($pattern, $arrLanguages = [])
+    public function searchForInLanguages($strPattern, $arrLanguages = [])
     {
         $tableName       = $this->getTagSource();
         $idColName       = $this->getIdColumn();
@@ -648,7 +610,7 @@ class TranslatedTags extends Tags implements ITranslated, IAliasConverter
         $queryBuilder = $this->getConnection()->createQueryBuilder();
 
         $queryAndLanguages = null;
-        if ($arrLanguages) {
+        if ((null !== $langCodeColName) && $arrLanguages) {
             $queryAndLanguages = $queryBuilder->expr()->in($langCodeColName, ':languages');
         }
 
@@ -668,14 +630,12 @@ class TranslatedTags extends Tags implements ITranslated, IAliasConverter
                 )
             )
             ->andWhere('t.att_id=:att')
-            ->setParameter('patternValue', $pattern)
-            ->setParameter('patternAlias', $pattern)
-            ->setParameter('languages', $arrLanguages, Connection::PARAM_STR_ARRAY)
+            ->setParameter('patternValue', $strPattern)
+            ->setParameter('patternAlias', $strPattern)
+            ->setParameter('languages', $arrLanguages, ArrayParameterType::STRING)
             ->setParameter('att', $this->get('id'));
 
-        $filterRule = SimpleQuery::createFromQueryBuilder($builder, 'item_id');
-
-        return $filterRule->getMatchingIds();
+        return SimpleQuery::createFromQueryBuilder($builder, 'item_id')->getMatchingIds();
     }
 
     /**
@@ -687,7 +647,7 @@ class TranslatedTags extends Tags implements ITranslated, IAliasConverter
      *
      * @return array
      */
-    private function convertRows(Result $dbResult, $idColumn, $valueColumn)
+    private function convertRows(Result $dbResult, string $idColumn, string $valueColumn): array
     {
         $result = [];
         while ($row = $dbResult->fetchAssociative()) {
@@ -743,7 +703,10 @@ class TranslatedTags extends Tags implements ITranslated, IAliasConverter
 
         $tableName  = $this->getTagSource();
         $langColumn = $this->getTagLangColumn();
-        $statement  = $this->getConnection()
+        if ($langColumn === null) {
+            return null;
+        }
+        $statement = $this->getConnection()
             ->createQueryBuilder()
             ->select('v.' . $returnColumn)
             ->addSelect('v.' . $langColumn)
@@ -751,20 +714,20 @@ class TranslatedTags extends Tags implements ITranslated, IAliasConverter
             ->where('v.' . $searchColumn . ' = :search')
             ->setParameter('search', $search);
 
-        if ($this->getWhereColumn()) {
-            $statement->andWhere('(' . $this->getWhereColumn() . ')');
+        if ('' !== ($whereColumn = $this->getWhereColumn() ?? '')) {
+            $statement->andWhere('(' . $whereColumn . ')');
         }
 
         try {
-            $result = $statement->execute();
-            if ($result->rowCount() == 0) {
+            $result = $statement->executeQuery();
+            if ($result->rowCount() === 0) {
                 return null;
             }
 
             $first   = null;
             $fitting = null;
             foreach ($result->fetchAllAssociative() as $row) {
-                if ($row[$langColumn] == $langcode) {
+                if ($row[$langColumn] === $langcode) {
                     $fitting = $row[$returnColumn];
                     break;
                 }
@@ -773,8 +736,71 @@ class TranslatedTags extends Tags implements ITranslated, IAliasConverter
             }
 
             return ($fitting ?? $first);
-        } catch (Exception|DbalDriverException $e) {
+        } catch (Exception | DbalDriverException $e) {
             return null;
         }
+    }
+
+    /**
+     * If a sorting table and column has been defined, sort the passed query builder instance by it.
+     *
+     * @param QueryBuilder $statement
+     * @param string       $idColumn
+     *
+     * @return void
+     */
+    private function sortTagSourceBySortingColumn(QueryBuilder $statement, string $idColumn, string $fromAlias): void
+    {
+        if (null === $tagSortSourceTable = $this->getTagSortSourceTable()) {
+            return;
+        }
+        // FIXME: can we restrict all of this to only execute when we also have a sort column defined?
+        $statement
+            ->addSelect($tagSortSourceTable . '.*')
+            ->join(
+                $fromAlias,
+                $tagSortSourceTable,
+                'sort',
+                $statement->expr()->eq($fromAlias . '.' . $idColumn, 'sort.id')
+            );
+
+        if (null !== $tagSortSourceColumn = $this->getTagSortSourceColumn('sort')) {
+            $statement->orderBy($tagSortSourceColumn);
+        }
+    }
+
+    /** @return non-empty-string */
+    private function getCurrentLanguage(): string
+    {
+        $metaModel = $this->getMetaModel();
+        if ($metaModel instanceof ITranslatedMetaModel) {
+            $language = $metaModel->getLanguage();
+            assert('' !== $language);
+            return $language;
+        }
+
+        /** @psalm-suppress DeprecatedMethod */
+        $language = $this->getMetaModel()->getActiveLanguage();
+        assert('' !== $language);
+        return $language;
+    }
+
+    /** @return non-empty-string */
+    private function getMainLanguage(): string
+    {
+        $metaModel = $this->getMetaModel();
+        if ($metaModel instanceof ITranslatedMetaModel) {
+            $language = $metaModel->getMainLanguage();
+            assert('' !== $language);
+            return $language;
+        }
+
+        /** @psalm-suppress DeprecatedMethod */
+        $language = $this->getMetaModel()->getFallbackLanguage();
+
+        if (null === $language || '' === $language) {
+            throw new LogicException('No fallback language defined in MetaModel');
+        }
+        return $language;
     }
 }
