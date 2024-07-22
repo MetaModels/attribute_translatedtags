@@ -1,0 +1,34 @@
+<?xml version="1.0" ?><xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" version="1.2">
+  <file source-language="en" datatype="plaintext" original="src/Resources/translations/tl_metamodel_attribute.en.xlf" target-language="de">
+    <body>
+      <trans-unit id="typeOptions.translatedtags" resname="typeOptions.translatedtags">
+        <source>Translated tags</source>
+        <target>Übersetzte Mehrfachauswahl [tags]</target>
+      </trans-unit>
+      <trans-unit id="tag_langcolumn.label" resname="tag_langcolumn.label">
+        <source>Language column</source>
+        <target>Sprachenspalte</target>
+      </trans-unit>
+      <trans-unit id="tag_langcolumn.description" resname="tag_langcolumn.description">
+        <source>Please specify which column holds the language code in ISO 639-1</source>
+        <target>Bitte angeben, welche Spalte den Sprachcode nach ISO 639-1 enthält.</target>
+      </trans-unit>
+      <trans-unit id="tag_srctable.label" resname="tag_srctable.label">
+        <source>Untranslated table for sorting</source>
+        <target>Nicht-Übersetzte Tabelle für die Sortierung.</target>
+      </trans-unit>
+      <trans-unit id="tag_srctable.description" resname="tag_srctable.description">
+        <source>Please specify the table that provides the sorting column.</source>
+        <target>Bitte nennen Sie die Tabelle, welche die zu sortieren de Spalte enthält.</target>
+      </trans-unit>
+      <trans-unit id="tag_srcsorting.label" resname="tag_srcsorting.label">
+        <source>Sorting column</source>
+        <target>Sortierspalte</target>
+      </trans-unit>
+      <trans-unit id="tag_srcsorting.description" resname="tag_srcsorting.description">
+        <source>Please specify which column of the untranslated table shall be used for sorting.</source>
+        <target>Wählen Sie bitte, welche Spalte der noch nicht übersetzten Tabelle für die Sortierung verwendet werden soll.</target>
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

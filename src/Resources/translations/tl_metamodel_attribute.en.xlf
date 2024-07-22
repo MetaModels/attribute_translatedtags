@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" version="1.2">
+  <file source-language="en" datatype="plaintext" original="src/Resources/translations/tl_metamodel_attribute.en.xlf">
+    <body>
+      <trans-unit id="typeOptions.translatedtags" resname="typeOptions.translatedtags">
+        <source>Translated tags</source>
+      </trans-unit>
+      <trans-unit id="tag_langcolumn.label" resname="tag_langcolumn.label">
+        <source>Language column</source>
+      </trans-unit>
+      <trans-unit id="tag_langcolumn.description" resname="tag_langcolumn.description">
+        <source>Please specify which column holds the language code in ISO 639-1</source>
+      </trans-unit>
+      <trans-unit id="tag_srctable.label" resname="tag_srctable.label">
+        <source>Untranslated table for sorting</source>
+      </trans-unit>
+      <trans-unit id="tag_srctable.description" resname="tag_srctable.description">
+        <source>Please specify the table that provides the sorting column.</source>
+      </trans-unit>
+      <trans-unit id="tag_srcsorting.label" resname="tag_srcsorting.label">
+        <source>Sorting column</source>
+      </trans-unit>
+      <trans-unit id="tag_srcsorting.description" resname="tag_srcsorting.description">
+        <source>Please specify which column of the untranslated table shall be used for sorting.</source>
+      </trans-unit>
+    </body>
+  </file>
+</xliff>
