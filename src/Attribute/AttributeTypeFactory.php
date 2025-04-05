@@ -31,7 +31,6 @@ use MetaModels\IMetaModel;
  */
 class AttributeTypeFactory extends AbstractAttributeTypeFactory
 {
-
     /**
      * Database connection.
      *
